@@ -562,8 +562,11 @@
         <div>👤 Siswa: <strong id="winStudentName" style="color:#38bdf8;">-</strong></div>
         <div>🏫 Kelas: <strong id="winStudentClass" style="color:#facc15;">-</strong></div>
         <div>✅ Soal Benar: <strong id="winCorrectCount" style="color:#22c55e;">0</strong> / 20 Soal</div>
+        <div>❌ Soal Salah: <strong id="winWrongCount" style="color:#ef4444;">0</strong> / 20 Soal</div>
         <div>⭐ Nilai Akhir STS: <strong id="winScore" style="color:#ffd152; font-size:16px;">0</strong> / 100</div>
-        <div>⏱️ Total Waktu: <strong id="winTime" style="color:#4ade80;">0s</strong></div>
+        <div>⏱️ Total Waktu: <strong id="winTime" style="color:#4ade80;">0s</strong> (Di Soal: <span id="winQuizTime" style="color:#38bdf8;">0s</span>)</div>
+        <div>🔄 Mengulang (Retry): <strong id="winRetryCount" style="color:#c084fc;">0 kali</strong></div>
+        <div>🔍 Pindah Tab/Layar: <strong id="winTabSwitch" style="color:#f87171;">0 kali</strong> (Idle: <span id="winIdle" style="color:#fbbf24;">0s</span>)</div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:8px;">
@@ -593,31 +596,76 @@
 
     let totalElapsedTime = 0;
     let timerInterval = null;
+    let lastUserActivity = Date.now();
+
+    function recordActivity() {
+      lastUserActivity = Date.now();
+    }
+    window.addEventListener('mousemove', recordActivity);
+    window.addEventListener('keydown', recordActivity);
+    window.addEventListener('touchstart', recordActivity, { passive: true });
+    window.addEventListener('click', recordActivity);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && studentData.name && !gameState.isPaused) {
+        gameState.tabSwitchCount++;
+        if (gameState.isQuizActive) {
+          gameState.quizTabSwitchCount++;
+          showToast("⚠️ Peringatan: Berpindah layar/tab dicatat oleh guru!");
+        }
+      }
+    });
+
+    window.addEventListener('blur', () => {
+      if (studentData.name && !gameState.isPaused && gameState.isQuizActive) {
+        gameState.tabSwitchCount++;
+      }
+    });
 
     function startTimer() {
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(() => {
-        if (!gameState.isQuizActive && !gameState.isPaused && studentData.name) {
+        if (!gameState.isPaused && studentData.name) {
           totalElapsedTime++;
           document.getElementById('hudTimer').innerText = `${totalElapsedTime}s`;
+
+          // Hitung waktu di layar soal & deteksi idle (diam > 15 detik)
+          if (gameState.isQuizActive) {
+            gameState.totalQuizTime++;
+            const secondsInactive = (Date.now() - lastUserActivity) / 1000;
+            if (secondsInactive >= 15) {
+              gameState.idleTimeTotal++;
+              if (!gameState.currentQHadIdle) {
+                gameState.currentQHadIdle = true;
+                gameState.idleTriggerCount++;
+              }
+            }
+          }
         }
       }, 1000);
     }
 
     function sendDataToSpreadsheet(statusDesc) {
       if (!studentData.name) return;
+      const wrongCount = Math.max(0, 20 - gameState.correctCount);
       const params = new URLSearchParams({
         nama: studentData.name,
         kelas: studentData.className || "SMP VII A",
         absen: studentData.absen || "-",
         skor: gameState.score,
         benar: gameState.correctCount,
+        salah: wrongCount,
         waktu: totalElapsedTime,
+        waktu_soal: gameState.totalQuizTime,
+        ulang: gameState.retryCount,
+        tab_switch: gameState.tabSwitchCount,
+        idle_detik: gameState.idleTimeTotal,
+        idle_kali: gameState.idleTriggerCount,
         status: statusDesc || "Update STS SMP",
         t: Date.now()
       });
       const img = new Image();
-      img.onload = () => showToast("✅ Nilai Tersimpan di Google Sheets!");
+      img.onload = () => showToast("✅ Nilai & Integritas Tersimpan di Sheets!");
       img.onerror = () => showToast("✅ Data telah dikirim!");
       img.src = `${SPREADSHEET_URL}?${params.toString()}`;
     }
@@ -1017,6 +1065,13 @@
       correctCount: 0,
       coins: 0,
       lives: 3,
+      retryCount: 0,
+      totalQuizTime: 0,
+      idleTimeTotal: 0,
+      idleTriggerCount: 0,
+      currentQHadIdle: false,
+      tabSwitchCount: 0,
+      quizTabSwitchCount: 0,
       checkpoint: { x: 0, y: 1.5, z: 0 },
       isQuizActive: false,
       isPaused: false,
@@ -1432,6 +1487,8 @@
 
     function openQuiz(portal) {
       gameState.isQuizActive = true;
+      gameState.currentQHadIdle = false;
+      lastUserActivity = Date.now();
       setMobileControlsVisible(false);
       currentQuizItem = SMP_STS_QUESTIONS[portal.qIndex];
 
@@ -1525,11 +1582,17 @@
     function showFinalWinScreen() {
       gameState.isQuizActive = true;
       setMobileControlsVisible(false);
+      const wrongCount = Math.max(0, 20 - gameState.correctCount);
       document.getElementById('winStudentName').innerText = studentData.name;
       document.getElementById('winStudentClass').innerText = studentData.className;
       document.getElementById('winCorrectCount').innerText = gameState.correctCount;
+      document.getElementById('winWrongCount').innerText = wrongCount;
       document.getElementById('winScore').innerText = gameState.score;
       document.getElementById('winTime').innerText = `${totalElapsedTime}s`;
+      document.getElementById('winQuizTime').innerText = `${gameState.totalQuizTime}s`;
+      document.getElementById('winRetryCount').innerText = `${gameState.retryCount} kali`;
+      document.getElementById('winTabSwitch').innerText = `${gameState.tabSwitchCount} kali`;
+      document.getElementById('winIdle').innerText = `${gameState.idleTimeTotal}s`;
       document.getElementById('winModal').style.display = 'flex';
       sendDataToSpreadsheet(`Selesai STS SMP (Skor: ${gameState.score}/100)`);
     }
@@ -1655,6 +1718,12 @@
       document.getElementById('winModal').style.display = 'none';
       gameState.score = 0;
       gameState.correctCount = 0;
+      gameState.retryCount++;
+      gameState.totalQuizTime = 0;
+      gameState.idleTimeTotal = 0;
+      gameState.idleTriggerCount = 0;
+      gameState.tabSwitchCount = 0;
+      gameState.quizTabSwitchCount = 0;
       gameState.lives = 3;
       gameState.isQuizActive = false;
       totalElapsedTime = 0;
@@ -1666,6 +1735,7 @@
 
     document.getElementById('btnRestartLevel').addEventListener('click', () => {
       document.getElementById('gameOverModal').style.display = 'none';
+      gameState.retryCount++;
       gameState.lives = 3;
       gameState.isQuizActive = false;
       setMobileControlsVisible(true);
