@@ -384,6 +384,32 @@
       overflow-y: auto;
       position: relative;
     }
+    .modal-close-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1.5px solid rgba(6, 182, 212, 0.35);
+      color: #cbd5e1;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      z-index: 20;
+    }
+    .modal-close-btn:hover {
+      background: #f43f5e;
+      color: white;
+      border-color: #f43f5e;
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
+    }
     .modal-title {
       font-family: 'Orbitron', sans-serif;
       font-size: 20px;
@@ -737,6 +763,7 @@
   <!-- MODAL: IDENTITAS SISWA (DROPDOWN KELAS RESMI) -->
   <div class="modal-overlay" id="studentModal" style="display: none;">
     <div class="modal-card">
+      <button class="modal-close-btn" id="btnCloseStudentX" title="Tutup">✕</button>
       <h2 class="modal-title">📝 DATA IDENTITAS SISWA STS</h2>
       <p class="modal-subtitle">Pilih kelas resmi dan masukkan namamu untuk rekapan nilai Google Sheets guru.</p>
       
@@ -770,6 +797,7 @@
   <!-- MODAL: ATURAN MAIN STS -->
   <div class="modal-overlay" id="rulesModal" style="display: none;">
     <div class="modal-card" style="max-width: 560px;">
+      <button class="modal-close-btn" id="btnCloseRulesX" title="Tutup">✕</button>
       <h2 class="modal-title">📜 ATURAN & SISTEM PENILAIAN STS</h2>
       <div style="font-size:12.5px; color:#cbd5e1; text-align:left; line-height:1.7; background:#0a0e1a; padding:14px; border-radius:12px; border:1px solid #1e293b; margin-bottom:14px;">
         <p>🎯 <strong>1. Jumlah Soal:</strong> Terdapat <strong>20 Soal Pilihan Ganda</strong> berbasis materi silabus SMA Fase E.</p>
@@ -785,6 +813,7 @@
   <!-- MODAL: PAUSE MENU -->
   <div class="modal-overlay" id="pauseMenuModal" style="display: none;">
     <div class="modal-card">
+      <button class="modal-close-btn" id="btnClosePauseX" title="Tutup">✕</button>
       <h2 class="modal-title">⏸️ PERMAINAN DIJEDA</h2>
       <p class="modal-subtitle">Asesmen sedang dijeda. Kamu dapat membuka kisi-kisi atau melihat papan peringkat.</p>
       <div style="display:flex; flex-direction:column; gap:8px;">
@@ -800,6 +829,7 @@
   <!-- MODAL: KISI-KISI & BUKU SAKU PIGPEN / CAESAR / PYTHON -->
   <div class="modal-overlay" id="cheatsheetModal" style="display: none;">
     <div class="modal-card" style="max-width: 620px;">
+      <button class="modal-close-btn" id="btnCloseCheatX" title="Tutup">✕</button>
       <h2 class="modal-title" style="font-size: 18px;">💡 KISI-KISI & BUKU SAKU STS SMA</h2>
       <div class="modal-tabs">
         <button class="m-tab active" data-tab="tab-pigpen">🐷 Pigpen</button>
@@ -877,6 +907,7 @@ umur = <span class="fn">int</span>(<span class="fn">input</span>(<span class="st
   <!-- MODAL: PAPAN PERINGKAT -->
   <div class="modal-overlay" id="leaderboardModal" style="display: none;">
     <div class="modal-card">
+      <button class="modal-close-btn" id="btnCloseLeaderboardX" title="Tutup">✕</button>
       <h2 class="modal-title">🏆 PAPAN PERINGKAT SISWA STS</h2>
       <p class="modal-subtitle">Sinkronisasi langsung dengan Google Spreadsheets</p>
 
@@ -2173,6 +2204,20 @@ umur = <span class="fn">int</span>(<span class="fn">input</span>(<span class="st
     document.getElementById('btnCloseRules').addEventListener('click', () => {
       rulesModal.style.display = 'none';
     });
+    document.getElementById('btnCloseRulesX').addEventListener('click', () => {
+      rulesModal.style.display = 'none';
+    });
+    document.getElementById('btnCloseStudentX').addEventListener('click', () => {
+      studentModal.style.display = 'none';
+      if (!gameState.isPaused && studentData.name) {
+        setMobileControlsVisible(true);
+      }
+    });
+    document.getElementById('btnClosePauseX').addEventListener('click', () => {
+      pauseMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+    });
 
     document.getElementById('btnMenuLeaderboard').addEventListener('click', () => {
       leaderboardModal.style.display = 'flex';
@@ -2241,12 +2286,14 @@ umur = <span class="fn">int</span>(<span class="fn">input</span>(<span class="st
       setMobileControlsVisible(false);
     });
 
-    document.getElementById('btnCloseLeaderboard').addEventListener('click', () => {
+    const closeLeaderboard = () => {
       leaderboardModal.style.display = 'none';
       if (!gameState.isPaused && !gameState.isQuizActive && studentData.name && mainMenuModal.style.display === 'none') {
         setMobileControlsVisible(true);
       }
-    });
+    };
+    document.getElementById('btnCloseLeaderboard').addEventListener('click', closeLeaderboard);
+    document.getElementById('btnCloseLeaderboardX').addEventListener('click', closeLeaderboard);
 
     document.getElementById('btnWinLeaderboard').addEventListener('click', () => {
       leaderboardModal.style.display = 'flex';
@@ -2292,9 +2339,11 @@ umur = <span class="fn">int</span>(<span class="fn">input</span>(<span class="st
     document.getElementById('btnPauseCheat').addEventListener('click', openCheatsheet);
     document.getElementById('btnQuizOpenCheat').addEventListener('click', openCheatsheet);
 
-    document.getElementById('btnCloseCheat').addEventListener('click', () => {
+    const closeCheat = () => {
       cheatsheetModal.style.display = 'none';
-    });
+    };
+    document.getElementById('btnCloseCheat').addEventListener('click', closeCheat);
+    document.getElementById('btnCloseCheatX').addEventListener('click', closeCheat);
 
     document.querySelectorAll('.m-tab').forEach(tabBtn => {
       tabBtn.addEventListener('click', () => {

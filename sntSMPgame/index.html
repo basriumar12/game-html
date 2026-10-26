@@ -293,17 +293,43 @@
       padding: 14px;
     }
     .modal-card {
+      position: relative;
       background: #1e293b;
       border: 3px solid #f59e0b;
       border-radius: 20px;
       width: 100%;
       max-width: 520px;
-      padding: 20px;
+      padding: 22px;
       color: white;
       text-align: center;
       box-shadow: 0 16px 36px rgba(0,0,0,0.6);
       max-height: 88vh;
       overflow-y: auto;
+    }
+    .modal-close-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      color: #cbd5e1;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      z-index: 20;
+    }
+    .modal-close-btn:hover {
+      background: #ef4444;
+      color: white;
+      border-color: #ef4444;
+      transform: scale(1.1);
     }
     .modal-title { font-family: 'Fredoka One', cursive; font-size: 22px; color: #facc15; margin-bottom: 6px; }
     .form-group { text-align: left; margin-bottom: 12px; }
@@ -447,6 +473,7 @@
   <!-- MODAL: INPUT IDENTITAS DENGAN DROPDOWN KELAS -->
   <div class="modal-overlay" id="studentModal" style="display: none;">
     <div class="modal-card">
+      <button class="modal-close-btn" id="btnCloseStudentX" title="Tutup">✕</button>
       <h2 class="modal-title">📝 DATA IDENTITAS SISWA STS</h2>
       <p style="color:#cbd5e1; margin-bottom: 12px; font-size:12px;">Pilih kelas resmi dan masukkan nama untuk Google Sheets guru.</p>
       
@@ -480,6 +507,7 @@
   <!-- MODAL: RULES STS -->
   <div class="modal-overlay" id="rulesModal" style="display: none;">
     <div class="modal-card">
+      <button class="modal-close-btn" id="btnCloseRulesX" title="Tutup">✕</button>
       <h2 class="modal-title">📜 ATURAN MAIN ASESMEN STS</h2>
       <div style="font-size:12.5px; color:#cbd5e1; text-align:left; line-height:1.7; background:#0f172a; padding:14px; border-radius:12px; border:1px solid #334155; margin-bottom:14px;">
         <p>🎯 <strong>1. Jumlah Soal:</strong> Ada <strong>20 Soal Pilihan Ganda</strong> berbasis kurikulum Informatika SMP Kelas VII.</p>
@@ -494,6 +522,7 @@
   <!-- MODAL: PAUSE -->
   <div class="modal-overlay" id="pauseMenuModal" style="display: none;">
     <div class="modal-card">
+      <button class="modal-close-btn" id="btnClosePauseX" title="Tutup">✕</button>
       <h2 class="modal-title">⏸️ MENU PERMAINAN</h2>
       <p style="color:#cbd5e1; margin-bottom:14px;">Permainan dijeda sementara.</p>
       <div style="display:flex; flex-direction:column; gap:8px;">
@@ -509,6 +538,7 @@
   <!-- MODAL: LEADERBOARD -->
   <div class="modal-overlay" id="leaderboardModal" style="display: none;">
     <div class="modal-card">
+      <button class="modal-close-btn" id="btnCloseLeaderboardX" title="Tutup">✕</button>
       <h2 class="modal-title">🏆 PAPAN PERINGKAT SISWA STS</h2>
       <p style="font-size:11px; color:#94a3b8;">Skor Tertinggi & Waktu Tercepat Semua Siswa</p>
       
@@ -1634,6 +1664,20 @@
     document.getElementById('btnCloseRules').addEventListener('click', () => {
       rulesModal.style.display = 'none';
     });
+    document.getElementById('btnCloseRulesX').addEventListener('click', () => {
+      rulesModal.style.display = 'none';
+    });
+    document.getElementById('btnCloseStudentX').addEventListener('click', () => {
+      studentModal.style.display = 'none';
+      if (!gameState.isPaused && studentData.name) {
+        setMobileControlsVisible(true);
+      }
+    });
+    document.getElementById('btnClosePauseX').addEventListener('click', () => {
+      pauseMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+    });
 
     document.getElementById('btnMenuLeaderboard').addEventListener('click', () => {
       leaderboardModal.style.display = 'flex';
@@ -1702,12 +1746,14 @@
       setMobileControlsVisible(false);
     });
 
-    document.getElementById('btnCloseLeaderboard').addEventListener('click', () => {
+    const closeLeaderboard = () => {
       leaderboardModal.style.display = 'none';
       if (!gameState.isPaused && !gameState.isQuizActive && studentData.name && mainMenuModal.style.display === 'none') {
         setMobileControlsVisible(true);
       }
-    });
+    };
+    document.getElementById('btnCloseLeaderboard').addEventListener('click', closeLeaderboard);
+    document.getElementById('btnCloseLeaderboardX').addEventListener('click', closeLeaderboard);
 
     document.getElementById('btnWinLeaderboard').addEventListener('click', () => {
       leaderboardModal.style.display = 'flex';
