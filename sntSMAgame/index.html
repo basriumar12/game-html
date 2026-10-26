@@ -1,0 +1,2262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CyberQuest 3D: Asesmen Sumatif Tengah Semester (STS) – SMA Kelas X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;800;900&family=Plus+Jakarta+Sans:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0e1a;
+      --panel-bg: rgba(15, 23, 42, 0.92);
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.4);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.4);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.4);
+      --purple: #8b5cf6;
+      --purple-glow: rgba(139, 92, 246, 0.4);
+      --rose: #f43f5e;
+      --blue-card: #1e293b;
+      --border-soft: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      touch-action: none;
+      color: var(--text-main);
+    }
+
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* HUD */
+    #hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 50;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px 14px;
+    }
+
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hud-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .hud-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(6, 182, 212, 0.5);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), inset 0 0 12px var(--cyan-glow);
+      border-radius: 12px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-main);
+      pointer-events: auto;
+    }
+
+    .hud-panel span.val-accent {
+      color: #38bdf8;
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .hud-panel span.val-gold {
+      color: #facc15;
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .hud-panel span.val-green {
+      color: #34d399;
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .btn-hud {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      border: 1.5px solid #38bdf8;
+      border-radius: 10px;
+      padding: 7px 11px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      pointer-events: auto;
+      box-shadow: 0 3px 0 #075985, 0 4px 12px rgba(6, 182, 212, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      letter-spacing: 0.5px;
+      transition: all 0.15s;
+    }
+    .btn-hud:active { transform: translateY(2px); box-shadow: 0 1px 0 #075985; }
+    .btn-hud-tool {
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      border-color: #a78bfa;
+      box-shadow: 0 3px 0 #4c1d95, 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+
+    .level-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 140px;
+    }
+    .level-name {
+      font-size: 10px;
+      color: #93c5fd;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+    .progress-box {
+      width: 100%;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 4px;
+      border: 1px solid #0284c7;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #06b6d4, #10b981);
+      transition: width 0.3s;
+    }
+
+    #interaction-hint {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0f172a;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 1px;
+      box-shadow: 0 8px 30px rgba(245, 158, 11, 0.5), 0 0 20px rgba(245, 158, 11, 0.4);
+      display: none;
+      z-index: 60;
+      cursor: pointer;
+      pointer-events: auto;
+      animation: pulseAlert 0.8s infinite alternate ease-in-out;
+      border: 2px solid #fef08a;
+    }
+    @keyframes pulseAlert {
+      from { transform: translate(-50%, -46%) scale(0.98); }
+      to { transform: translate(-50%, -54%) scale(1.04); }
+    }
+
+    #notif-toast {
+      position: fixed;
+      top: 66px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 15px rgba(16, 185, 129, 0.4);
+      display: none;
+      z-index: 10000;
+      pointer-events: none;
+      text-align: center;
+      border: 1px solid #6ee7b7;
+    }
+
+    /* KONTROL HP (JOYSTICK & TOMBOL AKSI) */
+    #mobileControls {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+    }
+
+    #joystickZone {
+      position: fixed;
+      bottom: 24px;
+      left: 20px;
+      width: 130px;
+      height: 130px;
+      z-index: 101;
+      pointer-events: auto;
+      touch-action: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #joystickBase {
+      width: 120px;
+      height: 120px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 2px solid rgba(6, 182, 212, 0.6);
+      backdrop-filter: blur(8px);
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(6, 182, 212, 0.2);
+    }
+    #joystickBase::before {
+      content: '';
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border: 1.5px dashed rgba(6, 182, 212, 0.5);
+      border-radius: 50%;
+    }
+    #joystickStick {
+      width: 52px;
+      height: 52px;
+      background: radial-gradient(circle at 35% 35%, #38bdf8, #0284c7);
+      border: 2.5px solid #ffffff;
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.7);
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    #mobileActionZone {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-end;
+      z-index: 101;
+      pointer-events: auto;
+      touch-action: none;
+    }
+    .action-touch-btn {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 2.5px solid rgba(255, 255, 255, 0.85);
+      color: white;
+      font-family: 'Orbitron', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+      outline: none;
+      transition: transform 0.08s ease, filter 0.08s ease;
+    }
+    .action-touch-btn .btn-icon {
+      font-size: 20px;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .action-touch-btn .btn-label {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      margin-top: 3px;
+      pointer-events: none;
+    }
+    #btnJump {
+      background: linear-gradient(135deg, #10b981, #047857);
+      box-shadow: 0 4px 0 #064e3b, 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    #btnJump:active, #btnJump.active-touch {
+      transform: translateY(3px) scale(0.94);
+      box-shadow: 0 1px 0 #064e3b;
+      filter: brightness(1.2);
+    }
+    #btnInteract {
+      background: linear-gradient(135deg, #f59e0b, #b45309);
+      box-shadow: 0 4px 0 #78350f, 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+    #btnInteract:active, #btnInteract.active-touch {
+      transform: translateY(3px) scale(0.94);
+      box-shadow: 0 1px 0 #78350f;
+      filter: brightness(1.2);
+    }
+    .btn-portal-active {
+      animation: portalGlow 0.8s infinite alternate ease-in-out !important;
+      border-color: #fde047 !important;
+    }
+    @keyframes portalGlow {
+      0% { transform: scale(1); box-shadow: 0 0 15px #f59e0b, 0 4px 0 #78350f; }
+      100% { transform: scale(1.12); box-shadow: 0 0 30px #facc15, 0 4px 0 #78350f; }
+    }
+
+    @media (max-width: 640px) {
+      .hud-panel { font-size: 10px; padding: 5px 8px; }
+      .hud-panel span.val-accent, .hud-panel span.val-gold, .hud-panel span.val-green { font-size: 12px; }
+      .btn-hud { font-size: 10px; padding: 5px 8px; }
+      #joystickZone { bottom: 18px; left: 14px; width: 110px; height: 110px; }
+      #joystickBase { width: 100px; height: 100px; }
+      #joystickStick { width: 44px; height: 44px; }
+      #mobileActionZone { bottom: 18px; right: 14px; gap: 10px; }
+      .action-touch-btn { width: 62px; height: 62px; }
+      .action-touch-btn .btn-icon { font-size: 18px; }
+      .action-touch-btn .btn-label { font-size: 9px; }
+    }
+
+    /* MODAL OVERLAYS & CARDS */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 14, 26, 0.94);
+      backdrop-filter: blur(10px);
+      z-index: 100000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-card {
+      background: #111827;
+      border: 2px solid #06b6d4;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(6, 182, 212, 0.3);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 580px;
+      padding: 22px;
+      color: white;
+      text-align: center;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      letter-spacing: 1px;
+      color: #38bdf8;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      font-weight: 900;
+    }
+    .modal-subtitle {
+      color: #94a3b8;
+      font-size: 12.5px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      color: #38bdf8;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: #0a0e1a;
+      border: 1.5px solid #334155;
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus {
+      border-color: #06b6d4;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #075985;
+      margin: 4px;
+      display: inline-block;
+      transition: all 0.1s;
+    }
+    .btn:hover { filter: brightness(1.1); }
+    .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #075985; }
+    .btn-green { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 0 #064e3b; }
+    .btn-purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); box-shadow: 0 4px 0 #4c1d95; }
+    .btn-amber { background: linear-gradient(135deg, #f59e0b, #d97706); color: #0a0e1a; box-shadow: 0 4px 0 #78350f; }
+    .btn-gray { background: #334155; color: #cbd5e1; box-shadow: 0 4px 0 #1e293b; }
+
+    /* QUIZ CARDS & CODE STYLING */
+    .quiz-topic-tag {
+      display: inline-block;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid #06b6d4;
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .quiz-question {
+      background: #0a0e1a;
+      border: 1.5px solid #1e293b;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      line-height: 1.6;
+      text-align: left;
+    }
+    .code-box {
+      background: #030712;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      color: #a5f3fc;
+      margin: 10px 0;
+      text-align: left;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+    .code-box .kw { color: #f43f5e; font-weight: bold; }
+    .code-box .fn { color: #60a5fa; }
+    .code-box .str { color: #34d399; }
+    .code-box .num { color: #f59e0b; }
+    .code-box .cm { color: #6b7280; font-style: italic; }
+
+    .quiz-options {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .quiz-option {
+      background: #1e293b;
+      border: 1.5px solid #334155;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13.5px;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      line-height: 1.4;
+    }
+    .quiz-option:hover {
+      border-color: #06b6d4;
+      background: #253347;
+      transform: translateX(4px);
+    }
+    .quiz-option.correct {
+      background: rgba(16, 185, 129, 0.25) !important;
+      border-color: #10b981 !important;
+      color: #6ee7b7 !important;
+    }
+    .quiz-option.wrong {
+      background: rgba(244, 63, 94, 0.25) !important;
+      border-color: #f43f5e !important;
+      color: #fda4af !important;
+    }
+    .quiz-feedback {
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: none;
+      text-align: left;
+      line-height: 1.5;
+    }
+    .feedback-correct {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1.5px solid #10b981;
+      color: #a7f3d0;
+    }
+    .feedback-wrong {
+      background: rgba(244, 63, 94, 0.2);
+      border: 1.5px solid #f43f5e;
+      color: #fecdd3;
+    }
+
+    /* PIGPEN RENDER HELPERS */
+    .pigpen-display {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+      background: #030712;
+      border-radius: 10px;
+      border: 1px solid #374151;
+      margin: 10px 0;
+    }
+    .pigpen-symbol {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #facc15;
+    }
+
+    /* TABS DALAM TOOL MODAL (CHEATSHEET) */
+    .modal-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      background: #0a0e1a;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+    }
+    .m-tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 8px 4px;
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      transition: all 0.15s;
+    }
+    .m-tab.active {
+      background: #0284c7;
+      color: white;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    }
+    .tab-content { display: none; text-align: left; }
+    .tab-content.active { display: block; }
+
+    /* LEADERBOARD TABLE */
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    .leaderboard-table th {
+      background: #0a0e1a;
+      color: #38bdf8;
+      padding: 10px 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      border-bottom: 2px solid #334155;
+    }
+    .leaderboard-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .table-wrap {
+      max-height: 280px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      margin-bottom: 14px;
+    }
+
+    .pigpen-grid-chart {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+      gap: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 6px;
+    }
+    .pigpen-cell {
+      background: #0a0e1a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 8px 4px;
+      text-align: center;
+      color: #facc15;
+    }
+    .pigpen-cell b {
+      display: block;
+      color: #38bdf8;
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D WORLD CANVAS -->
+  <div id="canvas-container"></div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-top">
+      <div class="hud-group">
+        <button class="btn-hud" id="btnOpenInGameMenu">⚙️ MENU</button>
+        <button class="btn-hud btn-hud-tool" id="btnOpenTools">💡 KISI-KISI</button>
+        <div class="hud-panel">
+          👤 <span id="hudStudentName" class="val-accent">Siswa SMA</span>
+          <span id="hudStudentClass" style="color:#94a3b8; font-size:10px; margin-left:4px;">(SMA X A)</span>
+        </div>
+      </div>
+
+      <div class="hud-panel level-badge">
+        <div>SOAL STS: <span id="hudQuestionIndex" class="val-accent">1</span>/20</div>
+        <div class="level-name" id="hudLevelTopic">Traffic Jam & Brute Force</div>
+        <div class="progress-box"><div class="progress-fill" id="hudProgress"></div></div>
+      </div>
+
+      <div class="hud-panel">
+        ⏱️ <span id="hudTimer" class="val-accent">0s</span> | ⭐ SKOR: <span id="hudScore" class="val-gold">0</span>/100 | ❤️ <span id="hudLives" class="val-green">3</span>
+      </div>
+    </div>
+    <div></div>
+  </div>
+
+  <div id="interaction-hint">⚡ KETUK TOMBOL [DEKRIPSI / HACK] 📜</div>
+  <div id="notif-toast">Nilai tersimpan di Database Guru!</div>
+
+  <!-- KONTROL SENTUH HP (VIRTUAL JOYSTICK & TOMBOL AKSI) -->
+  <div id="mobileControls">
+    <div id="joystickZone">
+      <div id="joystickBase">
+        <div id="joystickStick"></div>
+      </div>
+    </div>
+
+    <div id="mobileActionZone">
+      <button class="action-touch-btn" id="btnInteract" type="button" aria-label="Dekripsi / Kuis">
+        <span class="btn-icon">📜</span>
+        <span class="btn-label">HACK</span>
+      </button>
+      <button class="action-touch-btn" id="btnJump" type="button" aria-label="Lompat">
+        <span class="btn-icon">⬆️</span>
+        <span class="btn-label">JUMP</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: MENU UTAMA -->
+  <div class="modal-overlay" id="mainMenuModal">
+    <div class="modal-card">
+      <div class="quiz-topic-tag">Asesmen Sumatif Tengah Semester (STS) · Kelas X SMA</div>
+      <h1 class="modal-title">⚡ CYBERQUEST 3D: STS SMA</h1>
+      <p class="modal-subtitle">Ujian 20 Soal: Algoritma Brute Force, Caesar & Pigpen Cipher, serta Dasar Pemrograman Python!</p>
+
+      <div style="background:#0a0e1a; padding:14px; border-radius:14px; margin-bottom:16px; text-align:left; font-size:12px; border:1px solid #1e293b;">
+        <div>👤 Siswa Aktif: <strong id="menuDisplayStudent" style="color:#38bdf8;">Belum diisi</strong></div>
+        <div>🏫 Kelas Resmi: <strong id="menuDisplayClass" style="color:#facc15;">SMA X A</strong></div>
+        <div style="margin-top:6px; font-size:11px; color:#64748b; line-height:1.5;">
+          📝 <strong>Penilaian STS:</strong> 20 Soal Pilihan Ganda · Benar = +5 Poin · Nilai Maksimal 100 · Skor & Waktu Otomatis Tersimpan!
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-green" id="btnStartGame" style="padding:14px; font-size:15px;">▶ MULAI ASESMEN STS (20 SOAL)</button>
+        <button class="btn btn-hud-tool" id="btnMenuRules">📜 ATURAN MAIN & PENILAIAN</button>
+        <button class="btn btn-purple" id="btnMenuLeaderboard">🏆 PAPAN PERINGKAT SISWA</button>
+        <button class="btn btn-amber" id="btnMenuCheat">📖 KISI-KISI & PIGPEN DECODER</button>
+        <button class="btn btn-gray" id="btnChangeStudent">✏️ GANTI IDENTITAS SISWA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: IDENTITAS SISWA (DROPDOWN KELAS RESMI) -->
+  <div class="modal-overlay" id="studentModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">📝 DATA IDENTITAS SISWA STS</h2>
+      <p class="modal-subtitle">Pilih kelas resmi dan masukkan namamu untuk rekapan nilai Google Sheets guru.</p>
+      
+      <div class="form-group">
+        <label>Pilih Kelas Resmi</label>
+        <select id="inputStudentClass" class="form-input" style="cursor:pointer; background:#0a0e1a; color:white;">
+          <option value="SMA X A" selected>SMA X A</option>
+          <option value="SMA X B">SMA X B</option>
+          <option value="SMP VII A">SMP VII A</option>
+          <option value="SMP VII B">SMP VII B</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Nama Lengkap Siswa</label>
+        <input type="text" id="inputStudentName" class="form-input" placeholder="Contoh: Muhammad Kevin Al-Ghifari" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label>Nomor Absen Siswa</label>
+        <input type="number" id="inputStudentAbsen" class="form-input" placeholder="Contoh: 18" autocomplete="off">
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button class="btn btn-green" id="btnSaveStudent" style="width: 100%;">Mulai Asesmen STS ✔</button>
+        <button class="btn btn-gray" id="btnCancelStudent" style="width: 100%; margin-top:6px;">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ATURAN MAIN STS -->
+  <div class="modal-overlay" id="rulesModal" style="display: none;">
+    <div class="modal-card" style="max-width: 560px;">
+      <h2 class="modal-title">📜 ATURAN & SISTEM PENILAIAN STS</h2>
+      <div style="font-size:12.5px; color:#cbd5e1; text-align:left; line-height:1.7; background:#0a0e1a; padding:14px; border-radius:12px; border:1px solid #1e293b; margin-bottom:14px;">
+        <p>🎯 <strong>1. Jumlah Soal:</strong> Terdapat <strong>20 Soal Pilihan Ganda</strong> berbasis materi silabus SMA Fase E.</p>
+        <p>⭐ <strong>2. Bobot Nilai:</strong> Setiap jawaban benar mendapat <strong>+5 Poin</strong>. Total nilai maksimal adalah <strong>100 Poin</strong>. Tidak ada pengurangan nilai.</p>
+        <p>⏱️ <strong>3. Waktu Pengerjaan:</strong> Timer menghitung waktu penyelesaian. Pada skor yang sama di Papan Peringkat, siswa dengan waktu tercepat berada di posisi atas.</p>
+        <p>💡 <strong>4. Buku Saku & Kisi-Kisi:</strong> Kamu boleh membuka tombol <em>Cheatsheet</em> untuk memeriksa bagan Pigpen, rumus Caesar, atau sintaks Python sewaktu-waktu.</p>
+        <p>📊 <strong>5. Rekap Otomatis:</strong> Nilai akhir dan catatan waktu otomatis dikirim ke Google Sheets guru saat selesai soal ke-20.</p>
+      </div>
+      <button class="btn btn-green" id="btnCloseRules" style="width: 100%;">Saya Paham, Siap Mengerjakan! ➔</button>
+    </div>
+  </div>
+
+  <!-- MODAL: PAUSE MENU -->
+  <div class="modal-overlay" id="pauseMenuModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">⏸️ PERMAINAN DIJEDA</h2>
+      <p class="modal-subtitle">Asesmen sedang dijeda. Kamu dapat membuka kisi-kisi atau melihat papan peringkat.</p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-green" id="btnResumeGame">Lanjutkan Asesmen ➔</button>
+        <button class="btn btn-purple" id="btnPauseLeaderboard">Lihat Peringkat 🏆</button>
+        <button class="btn btn-hud-tool" id="btnPauseCheat">Buka Kisi-Kisi & Decoder 📖</button>
+        <button class="btn btn-gray" id="btnReturnToMainMenu">Keluar ke Menu Utama 🏠</button>
+        <button class="btn btn-amber" onclick="location.href='../index.html'">🌐 Kembali ke Portal Utama</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KISI-KISI & BUKU SAKU PIGPEN / CAESAR / PYTHON -->
+  <div class="modal-overlay" id="cheatsheetModal" style="display: none;">
+    <div class="modal-card" style="max-width: 620px;">
+      <h2 class="modal-title" style="font-size: 18px;">💡 KISI-KISI & BUKU SAKU STS SMA</h2>
+      <div class="modal-tabs">
+        <button class="m-tab active" data-tab="tab-pigpen">🐷 Pigpen</button>
+        <button class="m-tab" data-tab="tab-caesar">🏛️ Caesar</button>
+        <button class="m-tab" data-tab="tab-brute">🚦 Brute Force</button>
+        <button class="m-tab" data-tab="tab-python">🐍 Python</button>
+      </div>
+
+      <!-- Tab Pigpen -->
+      <div class="tab-content active" id="tab-pigpen">
+        <p style="font-size:12px; color:#cbd5e1; margin-bottom:8px;">
+          Pigpen cipher menggantikan huruf dengan garis geometri sel & silang:
+          <br>• <strong>A–I</strong>: Kotak 3x3 tanpa titik | • <strong>J–R</strong>: Kotak 3x3 bertitik
+          <br>• <strong>S–V</strong>: Silang 'X' tanpa titik | • <strong>W–Z</strong>: Silang 'X' bertitik
+        </p>
+        <div class="pigpen-grid-chart" id="cheatPigpenGrid"></div>
+      </div>
+
+      <!-- Tab Caesar -->
+      <div class="tab-content" id="tab-caesar">
+        <div style="font-size:12px; color:#cbd5e1; line-height:1.6;">
+          <p><strong>Rumus Enkripsi:</strong> <code style="color:#38bdf8;">C = (P + n) mod 26</code></p>
+          <p><strong>Rumus Dekripsi:</strong> <code style="color:#38bdf8;">P = (C - n) mod 26</code></p>
+          <div style="margin: 12px 0; background:#0a0e1a; padding:10px; border-radius:10px; border:1px solid #334155;">
+            <label style="font-size:11px; color:#94a3b8; display:block;">Simulasi Pergeseran Kunci (n): <strong id="lblShiftVal" style="color:#facc15;">3</strong></label>
+            <input type="range" id="caesarSlider" min="0" max="25" value="3" style="width:100%; margin:8px 0;">
+            <div style="display:flex; justify-content:space-between; font-size:12px;">
+              <div>Plainteks: <span style="color:#34d399; font-weight:800;">HELLO</span></div>
+              <div>➔ Cipherteks: <span id="caesarPreview" style="color:#f59e0b; font-weight:800;">KHOOR</span></div>
+            </div>
+          </div>
+          <p style="font-size:11px; color:#94a3b8;">Hanya ada 26 kemungkinan kunci (0–25), sehingga sangat mudah dibobol dengan serangan Brute Force.</p>
+        </div>
+      </div>
+
+      <!-- Tab Brute Force -->
+      <div class="tab-content" id="tab-brute">
+        <div style="font-size:12.5px; color:#cbd5e1; line-height:1.6;">
+          <p><strong>Apa itu Brute Force (Exhaustive Search)?</strong></p>
+          <p>Strategi mencoba <em>semua</em> kemungkinan solusi satu per satu secara berurutan sampai menemukan solusi yang benar.</p>
+          <div style="background:#0a0e1a; padding:10px; border-radius:10px; margin:8px 0; border:1px solid #1e293b;">
+            <p>✅ <strong>Kelebihan:</strong> Sederhana, pasti menemukan jawaban jika solusi ada.</p>
+            <p>❌ <strong>Kelemahan:</strong> Mengalami <em>ledakan kombinatorial</em> saat variasi bertambah (sangat lambat pada skala besar).</p>
+            <p>🚗 <strong>Traffic Jam:</strong> Mencoba variasi pergerakan mobil untuk membuka jalan mobil utama keluar parkir.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Python -->
+      <div class="tab-content" id="tab-python">
+        <div style="font-size:12px; color:#cbd5e1; line-height:1.6;">
+          <div class="code-box"><span class="cm"># Tipe Data & Casting</span>
+nama = <span class="str">"Alya"</span>      <span class="cm"># str</span>
+umur = <span class="num">16</span>          <span class="cm"># int</span>
+tinggi = <span class="num">165.5</span>     <span class="cm"># float</span>
+aktif = <span class="kw">True</span>       <span class="cm"># bool</span>
+umur = <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Umur: "</span>))
+
+<span class="cm"># Operator & Percabangan</span>
+<span class="kw">if</span> nilai >= <span class="num">75</span> <span class="kw">and</span> absen < <span class="num">3</span>:
+    <span class="fn">print</span>(<span class="str">"Tuntas"</span>)
+<span class="kw">elif</span> nilai >= <span class="num">60</span>:
+    <span class="fn">print</span>(<span class="str">"Remedial"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"Tidak Tuntas"</span>)</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button class="btn btn-green" id="btnCloseCheat">Tutup Panduan ✖</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PAPAN PERINGKAT -->
+  <div class="modal-overlay" id="leaderboardModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">🏆 PAPAN PERINGKAT SISWA STS</h2>
+      <p class="modal-subtitle">Sinkronisasi langsung dengan Google Spreadsheets</p>
+
+      <div id="leaderboardLoading" style="padding: 20px; color: #38bdf8; font-weight: 800;">
+        Sedang memuat data dari Spreadsheet...
+      </div>
+
+      <div class="table-wrap" id="leaderboardTableWrap" style="display: none;">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Pos</th>
+              <th>Nama Siswa</th>
+              <th>Kelas</th>
+              <th>Skor STS</th>
+              <th>Waktu</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 12px;">
+        <button class="btn btn-green" id="btnCloseLeaderboard">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: QUIZ / DEKRIPSI TERMINAL STS (20 SOAL) -->
+  <div class="modal-overlay" id="quizModal" style="display: none;">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div class="quiz-topic-tag" id="quizTopicTag">MODUL 1 · BRUTE FORCE</div>
+        <div style="font-family:'Orbitron', monospace; font-size:12px; color:#facc15; font-weight:800;">
+          SOAL <span id="modalQNum">1</span> / 20
+        </div>
+      </div>
+      
+      <h2 class="modal-title" style="font-size: 16px; margin-bottom: 10px;" id="quizTopicTitle">Terminal Asesmen Sumatif</h2>
+      
+      <div class="quiz-question" id="quizQuestionText">Pertanyaan...</div>
+      <div class="quiz-options" id="quizOptionsContainer"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-hud-tool" id="btnQuizOpenCheat" style="flex:1;">💡 Cheatsheet</button>
+        <button class="btn btn-green" id="btnContinueGame" style="flex:2; display: none;">Lanjut ke Soal Berikutnya ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HASIL EVALUASI AKHIR STS (SETELAH 20 SOAL) -->
+  <div class="modal-overlay" id="winModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title" style="color: #34d399;">🎉 ASESMEN STS SELESAI!</h2>
+      <p class="modal-subtitle">Selamat! Seluruh 20 soal asesmen sumatif tengah semester telah tuntas dikerjakan.</p>
+      
+      <div style="background:#0a0e1a; padding:16px; border-radius:14px; margin-bottom:16px; text-align:left; font-size:13px; line-height: 1.9; border:1px solid #1e293b;">
+        <div>👤 Nama Siswa: <strong id="winStudentName" style="color:#38bdf8;">-</strong></div>
+        <div>🏫 Kelas: <strong id="winStudentClass" style="color:#facc15;">-</strong></div>
+        <div>✅ Soal Benar: <strong id="winCorrectCount" style="color:#34d399;">0</strong> / 20 Soal</div>
+        <div>⭐ Nilai Akhir STS: <strong id="winScore" style="color:#ffd152; font-size:16px;">0</strong> / 100</div>
+        <div>⏱️ Total Waktu: <strong id="winTime" style="color:#4ade80;">0s</strong></div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-purple" id="btnWinLeaderboard">Cek Peringkat di Leaderboard 🏆</button>
+        <button class="btn btn-green" id="btnPlayAgain">Ulangi Asesmen STS 🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GAME OVER -->
+  <div class="modal-overlay" id="gameOverModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title" style="color: #f43f5e;">💀 INTEGRITAS BOT TERPUTUS</h2>
+      <p class="modal-subtitle">Energi robot habis. Jangan patah semangat, ulangi sesi latihan atau lanjut asesmen!</p>
+      <button class="btn btn-green" id="btnRestartLevel">Lanjutkan dari Checkpoint 🔄</button>
+    </div>
+  </div>
+
+  <!-- DEPENDENCY: THREE.JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script>
+    /* ==========================================================
+       1. DATA IDENTITAS & SPREADSHEET INTEGRATION
+    ========================================================== */
+    const SPREADSHEET_URL = "https://script.google.com/macros/s/AKfycbzrmavzVn7tX680Jrn6z_M-47x-1X2ouQLy3_qWNaEhet6mIO50vRn-3gzVjz7G_R3E/exec";
+
+    let studentData = {
+      name: localStorage.getItem('sma_student_name') || '',
+      className: localStorage.getItem('sma_student_class') || 'SMA X A',
+      absen: localStorage.getItem('sma_student_absen') || ''
+    };
+
+    let totalElapsedTime = 0;
+    let timerInterval = null;
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!gameState.isQuizActive && !gameState.isPaused && studentData.name) {
+          totalElapsedTime++;
+          document.getElementById('hudTimer').innerText = `${totalElapsedTime}s`;
+        }
+      }, 1000);
+    }
+
+    function sendDataToSpreadsheet(statusDesc) {
+      if (!studentData.name) return;
+      const params = new URLSearchParams({
+        nama: studentData.name,
+        kelas: studentData.className || "SMA X A",
+        absen: studentData.absen || "-",
+        skor: gameState.score,
+        benar: gameState.correctCount,
+        waktu: totalElapsedTime,
+        status: statusDesc || "Update STS",
+        t: Date.now()
+      });
+      const img = new Image();
+      img.onload = () => showToast("✅ Nilai Tersimpan di Spreadsheet!");
+      img.onerror = () => showToast("✅ Data telah dikirim!");
+      img.src = `${SPREADSHEET_URL}?${params.toString()}`;
+    }
+
+    function fetchAllLeaderboard() {
+      const loading = document.getElementById('leaderboardLoading');
+      const wrap = document.getElementById('leaderboardTableWrap');
+      const tbody = document.getElementById('leaderboardBody');
+
+      loading.style.display = 'block';
+      wrap.style.display = 'none';
+      tbody.innerHTML = '';
+
+      fetch(`${SPREADSHEET_URL}?action=getLeaderboard&t=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => {
+          loading.style.display = 'none';
+          wrap.style.display = 'block';
+
+          if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px;">Belum ada data siswa.</td></tr>';
+            return;
+          }
+
+          data.forEach((p, idx) => {
+            const tr = document.createElement('tr');
+            let rankIcon = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1);
+            const isMe = studentData.name && p.nama.toLowerCase() === studentData.name.toLowerCase();
+            if (isMe) tr.style.backgroundColor = "rgba(6, 182, 212, 0.15)";
+
+            tr.innerHTML = `
+              <td style="font-weight:900;">${rankIcon}</td>
+              <td style="font-weight:700; color:${isMe ? '#38bdf8' : '#fff'};">${p.nama} ${isMe ? '⭐' : ''}</td>
+              <td>${p.kelas}</td>
+              <td style="color:#facc15; font-weight:800;">${p.skor}</td>
+              <td style="color:#4ade80; font-weight:700;">${p.waktu}s</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          loading.innerText = "Gagal memuat online. Menampilkan data lokal...";
+          setTimeout(() => {
+            loading.style.display = 'none';
+            wrap.style.display = 'block';
+            tbody.innerHTML = `
+              <tr>
+                <td style="font-weight:900;">🥇</td>
+                <td style="font-weight:700; color:#38bdf8;">${studentData.name || 'Pemain'} ⭐</td>
+                <td>${studentData.className || 'SMA X A'}</td>
+                <td style="color:#facc15; font-weight:800;">${gameState.score}</td>
+                <td style="color:#4ade80; font-weight:700;">${totalElapsedTime}s</td>
+              </tr>
+            `;
+          }, 500);
+        });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('notif-toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+
+    /* ==========================================================
+       2. PIGPEN CIPHER SVG GENERATOR ENGINE
+    ========================================================== */
+    const PIGPEN_MAP = {
+      A:{sides:['right','bottom']}, B:{sides:['left','right','bottom']}, C:{sides:['left','bottom']},
+      D:{sides:['top','right','bottom']}, E:{sides:['top','right','bottom','left']}, F:{sides:['top','left','bottom']},
+      G:{sides:['top','right']}, H:{sides:['top','left','right']}, I:{sides:['top','left']},
+      J:{sides:['right','bottom'],dot:true}, K:{sides:['left','right','bottom'],dot:true}, L:{sides:['left','bottom'],dot:true},
+      M:{sides:['top','right','bottom'],dot:true}, N:{sides:['top','right','bottom','left'],dot:true}, O:{sides:['top','left','bottom'],dot:true},
+      P:{sides:['top','right'],dot:true}, Q:{sides:['top','left','right'],dot:true}, R:{sides:['top','left'],dot:true},
+      S:{region:'top'}, T:{region:'right'}, U:{region:'bottom'}, V:{region:'left'},
+      W:{region:'top',dot:true}, X:{region:'right',dot:true}, Y:{region:'bottom',dot:true}, Z:{region:'left',dot:true}
+    };
+
+    function renderPigpenLetter(letter, s = 34, strokeColor = 'currentColor', strokeWidth = 3) {
+      const d = PIGPEN_MAP[letter.toUpperCase()];
+      if (!d) return `<span style="font-size:${s*0.8}px; font-weight:bold;">${letter}</span>`;
+      const p = s * 0.15;
+      let lines = [];
+      if (d.sides) {
+        const L = p, R = s - p, T = p, B = s - p;
+        const segs = { top: [L, T, R, T], bottom: [L, B, R, B], left: [L, T, L, B], right: [R, T, R, B] };
+        d.sides.forEach(sd => lines.push(segs[sd]));
+      } else {
+        const c = s / 2, TL = [p, p], TR = [s - p, p], BL = [p, s - p], BR = [s - p, s - p];
+        const regs = { top: [TL, TR], bottom: [BL, BR], left: [TL, BL], right: [TR, BR] };
+        regs[d.region].forEach(pt => lines.push([c, c, pt[0], pt[1]]));
+      }
+      let svg = `<svg viewBox="0 0 ${s} ${s}" width="${s}" height="${s}" style="vertical-align:middle; display:inline-block;">`;
+      lines.forEach(l => {
+        svg += `<line x1="${l[0]}" y1="${l[1]}" x2="${l[2]}" y2="${l[3]}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-linecap="round"/>`;
+      });
+      if (d.dot) {
+        let dx = s / 2, dy = s / 2, off = s * 0.2;
+        if (d.region === 'top') dy -= off;
+        if (d.region === 'bottom') dy += off;
+        if (d.region === 'left') dx -= off;
+        if (d.region === 'right') dx += off;
+        svg += `<circle cx="${dx}" cy="${dy}" r="${s * 0.08}" fill="${strokeColor}"/>`;
+      }
+      svg += '</svg>';
+      return svg;
+    }
+
+    function renderPigpenWord(word, s = 32) {
+      return `<div class="pigpen-display">` + word.toUpperCase().split('').map(c => {
+        if (c === ' ') return `<span style="display:inline-block; width:${s*0.5}px;"></span>`;
+        return `<div class="pigpen-symbol">${renderPigpenLetter(c, s, '#facc15', 3.5)}</div>`;
+      }).join('') + `</div>`;
+    }
+
+    function initPigpenCheatGrid() {
+      const grid = document.getElementById('cheatPigpenGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(ch => {
+        const cell = document.createElement('div');
+        cell.className = 'pigpen-cell';
+        cell.innerHTML = renderPigpenLetter(ch, 30, '#facc15', 3) + `<b>${ch}</b>`;
+        grid.appendChild(cell);
+      });
+    }
+
+    function caesarShift(text, shift) {
+      return text.toUpperCase().replace(/[A-Z]/g, c => {
+        return String.fromCharCode(((c.charCodeAt(0) - 65 + shift) % 26) + 65);
+      });
+    }
+
+    const caesarSlider = document.getElementById('caesarSlider');
+    if (caesarSlider) {
+      caesarSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        document.getElementById('lblShiftVal').innerText = val;
+        document.getElementById('caesarPreview').innerText = caesarShift("HELLO", val);
+      });
+    }
+
+    /* ==========================================================
+       3. BANK 20 SOAL RESMI ASESMEN STS SMA KELAS X
+    ========================================================== */
+    const SMA_STS_QUESTIONS = [
+      // 1. Traffic Jam & Brute Force
+      {
+        module: "BK 1.1 · Traffic Jam & Brute Force",
+        q: "Dalam simulasi kemacetan (Traffic Jam), algoritma <b>Brute Force</b> bekerja dengan cara...",
+        options: [
+          "Mencoba semua kemungkinan kombinasi langkah satu per satu secara sistematis sampai menemukan solusi",
+          "Memilih jalan pintas tercepat menggunakan kecerdasan buatan",
+          "Mengacak langkah secara sembarang tanpa pengujian",
+          "Hanya menggeser mobil yang berada di dekat pintu keluar"
+        ],
+        correct: 0,
+        explanation: "Brute Force (Exhaustive Search) menyelesaikan masalah dengan mencoba SEMUA kemungkinan langkah satu per satu tanpa ada yang terlewat."
+      },
+      // 2. Ledakan Kombinatorial
+      {
+        module: "BK 1.1 · Traffic Jam & Brute Force",
+        q: "Fenomena melonjaknya jumlah kemungkinan solusi secara eksponensial seiring bertambahnya rintangan pada Brute Force disebut...",
+        options: [
+          "Ledakan Kombinatorial (Combinatorial Explosion)",
+          "Overfitting Memory",
+          "Deadlock Terbuka",
+          "Infinite Loop Overflow"
+        ],
+        correct: 0,
+        explanation: "Ledakan Kombinatorial membuat strategi Brute Force sangat lambat dan tidak efisien untuk masalah berskala besar."
+      },
+      // 3. Google Maps vs Brute Force
+      {
+        module: "BK 1.1 · Traffic Jam & Brute Force",
+        q: "Mengapa aplikasi navigasi seperti <b>Google Maps</b> tidak memakai Brute Force murni untuk menentukan rute jalan raya?",
+        options: [
+          "Karena jalan raya memiliki jutaan kombinasi persimpangan sehingga akan memakan waktu terlalu lama",
+          "Karena Brute Force tidak pernah bisa menemukan jalan keluar",
+          "Karena jalan raya selalu berubah setiap detik",
+          "Karena Brute Force hanya bisa digunakan pada bilangan biner"
+        ],
+        correct: 0,
+        explanation: "Dunia nyata membutuhkan algoritma pencarian graf yang cerdas (seperti Dijkstra atau A*) bukan mencoba seluruh rute."
+      },
+      // 4. Caesar Cipher Konsep
+      {
+        module: "BK 1.1 · Caesar Cipher",
+        q: "Prinsip kerja dasar dari algoritma kriptografi klasik <b>Caesar Cipher</b> adalah...",
+        options: [
+          "Menggeser posisi setiap huruf pada alfabet sejauh n langkah tertentu",
+          "Mengacak posisi huruf tanpa pola matematis",
+          "Mengubah teks menjadi kode biner 0 dan 1",
+          "Mengganti tiap huruf dengan simbol gambar binatang"
+        ],
+        correct: 0,
+        explanation: "Caesar Cipher adalah sandi substitusi monoalfabetik tertua yang menggeser urutan huruf sejauh n langkah."
+      },
+      // 5. Rumus Enkripsi Modulo
+      {
+        module: "BK 1.1 · Caesar Cipher",
+        q: "Rumus matematis enkripsi Caesar Cipher untuk huruf asli P dengan kunci pergeseran n adalah...",
+        options: [
+          "C = (P + n) mod 26",
+          "C = (P * n) / 26",
+          "C = (P - n) mod 26",
+          "C = (P ^ n) + 26"
+        ],
+        correct: 0,
+        explanation: "Modulo 26 memastikan hitungan berputar kembali ke awal alfabet (A) setelah melewati huruf terakhir (Z)."
+      },
+      // 6. Rumus Dekripsi Modulo
+      {
+        module: "BK 1.1 · Caesar Cipher",
+        q: "Untuk mengembalikan cipherteks C kembali ke huruf asli P (Dekripsi), rumus yang digunakan adalah...",
+        options: [
+          "P = (C - n) mod 26",
+          "P = (C + n) mod 26",
+          "P = (C / n) mod 26",
+          "P = (n - C) * 26"
+        ],
+        correct: 0,
+        explanation: "Dekripsi adalah kebalikan dari enkripsi: mengurangi posisi cipherteks dengan kunci pergeseran sejauh n."
+      },
+      // 7. Ruang Kunci Caesar
+      {
+        module: "BK 1.1 · Caesar Cipher",
+        q: "Mengapa Caesar Cipher sangat mudah dibobol komputer bahkan oleh manusia?",
+        options: [
+          "Karena hanya memiliki 26 kemungkinan kunci (n = 0 sampai 25) sehingga cepat diuji dengan Brute Force",
+          "Karena kunci pergeserannya selalu bernilai 0",
+          "Karena rumus matematikanya tidak bisa dihitung",
+          "Karena hanya bisa mengenkripsi 3 huruf saja"
+        ],
+        correct: 0,
+        explanation: "Dengan hanya 26 kemungkinan kunci pada alfabet Latin, serangan Brute Force dapat memecahkannya dalam hitungan detik."
+      },
+      // 8. Contoh Enkripsi Nyata
+      {
+        module: "BK 1.1 · Caesar Cipher",
+        q: "Jika kata <b>'DATA'</b> dienkripsi menggunakan Caesar Cipher dengan kunci <code>n = 3</code>, hasilnya adalah...",
+        options: [
+          "GDWD",
+          "EBEC",
+          "FCFD",
+          "HEHE"
+        ],
+        correct: 0,
+        explanation: "D(3)+3=G(6), A(0)+3=D(3), T(19)+3=W(22), A(0)+3=D(3) menghasilkan <b>GDWD</b>."
+      },
+      // 9. Pigpen 4 Keluarga
+      {
+        module: "BK 1.1 · Pigpen Cipher",
+        q: "Susunan Pigpen Cipher terbagi menjadi 4 kelompok geometris, yaitu...",
+        options: [
+          "Kotak dasar (A–I), Kotak bertitik (J–R), Silang (S–V), Silang bertitik (W–Z)",
+          "Segitiga (A–G), Lingkaran (H–N), Kotak (O–T), Silang (U–Z)",
+          "Garis lurus (A–M) dan Garis lengkung (N–Z)",
+          "Balok 3D (A–F) dan Tabung (G–Z)"
+        ],
+        correct: 0,
+        explanation: "Pigpen memanfaatkan 2 kisi tik-tak-toe (polos & bertitik) dan 2 kisi silang X (polos & bertitik)."
+      },
+      // 10. Pigpen Membaca Simbol
+      {
+        module: "BK 1.1 · Pigpen Cipher",
+        q: `Pesan apakah yang terkandung dalam deretan simbol Pigpen berikut?<br>${renderPigpenWord('KODE', 32)}`,
+        options: [
+          "KODE",
+          "DATA",
+          "AMAN",
+          "SANDI"
+        ],
+        correct: 0,
+        explanation: "K (kotak bertitik kiri-tengah), O (kotak bertitik kanan-bawah), D (kotak polos kanan-tengah), E (kotak polos tengah) membaca kata <b>KODE</b>."
+      },
+      // 11. Karakteristik Huruf A Pigpen
+      {
+        module: "BK 1.1 · Pigpen Cipher",
+        q: `Bentuk simbol Pigpen untuk huruf <b>'A'</b> adalah:<br>${renderPigpenLetter('A', 36, '#38bdf8', 4)}<br>Karakteristiknya adalah...`,
+        options: [
+          "Sudut siku yang memiliki garis sisi kanan dan bawah tanpa titik",
+          "Kotak tertutup penuh dengan sebuah titik",
+          "Bentuk silang X terbuka",
+          "Garis vertikal tunggal"
+        ],
+        correct: 0,
+        explanation: "Huruf A menempati sel pojok kiri-atas pada kisi 3x3, dibatasi oleh garis vertikal kanan dan horizontal bawah."
+      },
+      // 12. Intro Python - Variabel
+      {
+        module: "AP 2.1 · Intro to Python",
+        q: "Dalam pemrograman Python, fungsi utama dari sebuah <b>variabel</b> adalah...",
+        options: [
+          "Menyimpan nilai data di dalam memori agar dapat digunakan kembali dalam program",
+          "Menghapus program saat terjadi kesalahan sintaks",
+          "Mengganti warna tampilan editor teks",
+          "Mengubah komputer menjadi robot otomatis"
+        ],
+        correct: 0,
+        explanation: "Variabel diibaratkan wadah atau kotak berlabel nama untuk menampung data (seperti angka atau teks)."
+      },
+      // 13. Tipe Data Python
+      {
+        module: "AP 2.1 · Intro to Python",
+        q: "Perhatikan nilai <code>tinggi = 165.5</code> dan <code>hadir = True</code>. Apakah tipe data kedua variabel tersebut?",
+        options: [
+          "float dan bool",
+          "int dan str",
+          "str dan bool",
+          "float dan int"
+        ],
+        correct: 0,
+        explanation: "165.5 adalah bilangan desimal bertipe float, sedangkan True adalah nilai kebenaran bertipe bool."
+      },
+      // 14. input() & Type Casting
+      {
+        module: "AP 2.1 · Intro to Python",
+        q: "Fungsi <code>input()</code> di Python secara default menghasilkan tipe data string (str). Cara mengubahnya menjadi bilangan bulat adalah...",
+        options: [
+          "Menggunakan int(input())",
+          "Menggunakan str(input())",
+          "Menggunakan print(input())",
+          "Menggunakan type(input())"
+        ],
+        correct: 0,
+        explanation: "Type casting menggunakan int(...) diperlukan agar nilai input pengguna dapat dioperasikan secara matematis."
+      },
+      // 15. Konkatenasi vs Penjumlahan
+      {
+        module: "AP 2.1 · Intro to Python",
+        q: `Apakah output dari kode Python berikut?<br><div class="code-box"><span class="fn">print</span>(<span class="str">"10"</span> + <span class="str">"5"</span>, <span class="num">10</span> + <span class="num">5</span>)</div>`,
+        options: [
+          "105 15",
+          "15 15",
+          "105 105",
+          "Error: TypeError"
+        ],
+        correct: 0,
+        explanation: "'10' + '5' menggabungkan teks menjadi '105' (konkatenasi), sedangkan 10 + 5 menjumlahkan angka menjadi 15."
+      },
+      // 16. Operator Aritmatika % dan //
+      {
+        module: "AP 2.1 · Operator Aritmatika & Assignment",
+        q: `Apakah output dari baris kode berikut?<br><div class="code-box"><span class="fn">print</span>(<span class="num">17</span> % <span class="num">5</span>, <span class="num">17</span> // <span class="num">5</span>)</div>`,
+        options: [
+          "2 3",
+          "3 2",
+          "3.4 3",
+          "2 3.4"
+        ],
+        correct: 0,
+        explanation: "Operator % (modulo) mencari sisa bagi (17 % 5 = 2). Operator // (floor division) mencari hasil pembagian bulat (17 // 5 = 3)."
+      },
+      // 17. Operator Assignment
+      {
+        module: "AP 2.1 · Operator Aritmatika & Assignment",
+        q: `Berapakah nilai akhir <code>skor</code> pada kode berikut?<br><div class="code-box">skor = <span class="num">10</span>\nskor += <span class="num">5</span> * <span class="num">2</span>\n<span class="fn">print</span>(skor)</div>`,
+        options: [
+          "20",
+          "30",
+          "25",
+          "15"
+        ],
+        correct: 0,
+        explanation: "Perkalian 5 * 2 = 10 dihitung lebih dulu. Kemudian skor += 10 setara dengan skor = skor + 10 = 10 + 10 = 20."
+      },
+      // 18. Operator Logika Majemuk
+      {
+        module: "AP 2.2 · Operator Perbandingan & Logika",
+        q: `Apakah hasil evaluasi ekspresi logika berikut?<br><div class="code-box">x = <span class="num">10</span>\ny = <span class="num">20</span>\n<span class="fn">print</span>((x < y) <span class="kw">and</span> <span class="kw">not</span> (x == <span class="num">10</span>))</div>`,
+        options: [
+          "False",
+          "True",
+          "None",
+          "Error"
+        ],
+        correct: 0,
+        explanation: "(x < y) bernilai True. (x == 10) bernilai True, tetapi ada 'not' menjadi False. True and False menghasilkan False."
+      },
+      // 19. Percabangan if-elif-else
+      {
+        module: "AP 2.2 · Conditional Statement",
+        q: `Apakah output yang dicetak oleh struktur percabangan ini?<br><div class="code-box">nilai = <span class="num">82</span>\n<span class="kw">if</span> nilai >= <span class="num">90</span>:\n    <span class="fn">print</span>(<span class="str">"A"</span>)\n<span class="kw">elif</span> nilai >= <span class="num">80</span>:\n    <span class="fn">print</span>(<span class="str">"B"</span>)\n<span class="kw">else</span>:\n    <span class="fn">print</span>(<span class="str">"C"</span>)</div>`,
+        options: [
+          "B",
+          "A",
+          "C",
+          "A B"
+        ],
+        correct: 0,
+        explanation: "Syarat pertama (82 >= 90) False. Syarat kedua (82 >= 80) True, maka dicetak 'B' dan program keluar dari blok percabangan."
+      },
+      // 20. Indentasi & Kasus Kasir
+      {
+        module: "AP 2.2 · Conditional Statement",
+        q: `Berapakah nilai <code>bayar</code> yang dicetak pada program kasir berikut?<br><div class="code-box">total = <span class="num">60000</span>\nmember = <span class="kw">True</span>\n<span class="kw">if</span> total > <span class="num">50000</span> <span class="kw">and</span> member:\n    diskon = <span class="num">0.1</span> * total\n<span class="kw">else</span>:\n    diskon = <span class="num">0</span>\nbayar = total - diskon\n<span class="fn">print</span>(bayar)</div>`,
+        options: [
+          "54000.0",
+          "60000",
+          "50000.0",
+          "10000.0"
+        ],
+        correct: 0,
+        explanation: "Kondisi True karena total > 50000 dan member = True. Diskon = 0.1 * 60000 = 6000. Bayar = 60000 - 6000 = 54000.0."
+      }
+    ];
+
+    /* ==========================================================
+       4. AUDIO SYNTHESIZER
+    ========================================================== */
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+      playTone(freq, type = 'sine', duration = 0.15, vol = 0.12) {
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch(e){}
+      },
+      jump() { this.playTone(360, 'square', 0.14, 0.09); },
+      doubleJump() { 
+        this.playTone(520, 'triangle', 0.1, 0.1);
+        setTimeout(() => this.playTone(740, 'triangle', 0.13, 0.1), 60);
+      },
+      coin() { 
+        this.playTone(1100, 'sine', 0.08, 0.1); 
+        setTimeout(() => this.playTone(1500, 'sine', 0.16, 0.12), 60);
+      },
+      correct() {
+        this.playTone(523, 'sine', 0.08, 0.14);
+        setTimeout(() => this.playTone(659, 'sine', 0.08, 0.14), 70);
+        setTimeout(() => this.playTone(784, 'sine', 0.09, 0.14), 140);
+        setTimeout(() => this.playTone(1046, 'sine', 0.25, 0.16), 210);
+      },
+      wrong() {
+        this.playTone(240, 'sawtooth', 0.18, 0.14);
+        setTimeout(() => this.playTone(180, 'sawtooth', 0.25, 0.16), 110);
+      },
+      portalUnlock() {
+        this.playTone(440, 'sine', 0.1, 0.12);
+        setTimeout(() => this.playTone(880, 'triangle', 0.2, 0.15), 100);
+      }
+    };
+
+    /* ==========================================================
+       5. THREE.JS 3D SCENE & ENGINE
+    ========================================================== */
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0e1a);
+    scene.fog = new THREE.FogExp2(0x0a0e1a, 0.014);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e293b, 0.85);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0x38bdf8, 0.95);
+    dirLight.position.set(30, 50, 30);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    let platforms = [], coins = [], quizPortals = [], finishGate = null, gateBarrier = null;
+    let currentQuestionIdx = 0; // 0 s/d 19
+    let gameState = {
+      score: 0,
+      correctCount: 0,
+      coins: 0,
+      lives: 3,
+      checkpoint: { x: 0, y: 1.5, z: 0 },
+      isQuizActive: false,
+      isPaused: false,
+      gateUnlocked: false
+    };
+
+    /* CYBER HERO 3D */
+    const playerGroup = new THREE.Group();
+    scene.add(playerGroup);
+
+    const cyberBodyMat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
+    const cyberJointMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+    const visorMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+    const neonGlowMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+
+    const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.85, 0.5), cyberBodyMat);
+    bodyMesh.position.y = 0.65;
+    bodyMesh.castShadow = true;
+    playerGroup.add(bodyMesh);
+
+    const coreReactor = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.08, 16), neonGlowMat);
+    coreReactor.rotation.x = Math.PI / 2;
+    coreReactor.position.set(0, 0.72, -0.26);
+    playerGroup.add(coreReactor);
+
+    const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.55, 0.5), cyberJointMat);
+    headMesh.position.y = 1.35;
+    headMesh.castShadow = true;
+    playerGroup.add(headMesh);
+
+    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.18, 0.1), visorMat);
+    visor.position.set(0, 1.38, -0.27);
+    playerGroup.add(visor);
+
+    const antennaStem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.35), cyberJointMat);
+    antennaStem.position.set(0, 1.75, 0);
+    const antennaOrb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), neonGlowMat);
+    antennaOrb.position.set(0, 1.92, 0);
+    playerGroup.add(antennaStem, antennaOrb);
+
+    const legGeo = new THREE.BoxGeometry(0.22, 0.42, 0.26);
+    const legL = new THREE.Mesh(legGeo, cyberJointMat);
+    legL.position.set(-0.22, 0.2, 0);
+    const legR = legL.clone();
+    legR.position.x = 0.22;
+    playerGroup.add(legL, legR);
+
+    const player = {
+      pos: new THREE.Vector3(0, 1.5, 0),
+      vel: new THREE.Vector3(),
+      speed: 11.0,
+      gravity: -22.0,
+      jumpPower: 10.2,
+      isGrounded: false,
+      coyoteTimer: 0.2,
+      maxCoyote: 0.2,
+      jumpsRemaining: 2
+    };
+
+    /* CONTROLS (DESKTOP & TOUCH) */
+    const keys = { w: false, s: false, a: false, d: false };
+    const joystickVector = { x: 0, y: 0 };
+
+    window.addEventListener('keydown', (e) => {
+      AudioEngine.init();
+      const k = e.key.toLowerCase();
+      if (k === 'w' || e.code === 'ArrowUp') keys.w = true;
+      if (k === 's' || e.code === 'ArrowDown') keys.s = true;
+      if (k === 'a' || e.code === 'ArrowLeft') keys.a = true;
+      if (k === 'd' || e.code === 'ArrowRight') keys.d = true;
+
+      if (e.code === 'Space') triggerJump();
+      if (k === 'e') checkPortalInteraction();
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w' || e.code === 'ArrowUp') keys.w = false;
+      if (k === 's' || e.code === 'ArrowDown') keys.s = false;
+      if (k === 'a' || e.code === 'ArrowLeft') keys.a = false;
+      if (k === 'd' || e.code === 'ArrowRight') keys.d = false;
+    });
+
+    function setMobileControlsVisible(show) {
+      const el = document.getElementById('mobileControls');
+      if (el) el.style.display = show ? 'block' : 'none';
+      if (!show) resetJoystick();
+    }
+
+    const joystickZone = document.getElementById('joystickZone');
+    const joystickBase = document.getElementById('joystickBase');
+    const joystickStick = document.getElementById('joystickStick');
+    let joystickTouchId = null;
+    let joystickCenter = { x: 0, y: 0 };
+    const maxJoystickRadius = 42;
+
+    function resetJoystick() {
+      joystickTouchId = null;
+      joystickVector.x = 0;
+      joystickVector.y = 0;
+      if (joystickStick) joystickStick.style.transform = 'translate(0px, 0px)';
+    }
+
+    function updateJoystickPosition(clientX, clientY) {
+      let dx = clientX - joystickCenter.x;
+      let dy = clientY - joystickCenter.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > maxJoystickRadius) {
+        dx = (dx / dist) * maxJoystickRadius;
+        dy = (dy / dist) * maxJoystickRadius;
+      }
+
+      joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+      joystickVector.x = dx / maxJoystickRadius;
+      joystickVector.y = dy / maxJoystickRadius;
+    }
+
+    if (joystickZone && joystickBase) {
+      joystickZone.addEventListener('touchstart', (e) => {
+        if (joystickTouchId !== null) return;
+        const touch = e.changedTouches[0];
+        joystickTouchId = touch.identifier;
+        AudioEngine.init();
+
+        const rect = joystickBase.getBoundingClientRect();
+        joystickCenter = {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2
+        };
+        updateJoystickPosition(touch.clientX, touch.clientY);
+        if (e.cancelable) e.preventDefault();
+      }, { passive: false });
+
+      window.addEventListener('touchmove', (e) => {
+        if (joystickTouchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joystickTouchId) {
+            updateJoystickPosition(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+            if (e.cancelable) e.preventDefault();
+            break;
+          }
+        }
+      }, { passive: false });
+
+      const clearJoy = (e) => {
+        if (joystickTouchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joystickTouchId) {
+            resetJoystick();
+            break;
+          }
+        }
+      };
+      window.addEventListener('touchend', clearJoy);
+      window.addEventListener('touchcancel', clearJoy);
+    }
+
+    function setupActionButton(btnId, callback) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      const onPress = (e) => {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        AudioEngine.init();
+        btn.classList.add('active-touch');
+        callback();
+      };
+      const onRelease = (e) => {
+        if (e.cancelable) e.preventDefault();
+        btn.classList.remove('active-touch');
+      };
+
+      btn.addEventListener('touchstart', onPress, { passive: false });
+      btn.addEventListener('touchend', onRelease, { passive: false });
+      btn.addEventListener('touchcancel', onRelease, { passive: false });
+      btn.addEventListener('mousedown', onPress);
+      btn.addEventListener('mouseup', onRelease);
+    }
+
+    setupActionButton('btnJump', triggerJump);
+    setupActionButton('btnInteract', checkPortalInteraction);
+
+    document.getElementById('interaction-hint').addEventListener('click', checkPortalInteraction);
+    document.getElementById('interaction-hint').addEventListener('touchstart', (e) => {
+      if (e.cancelable) e.preventDefault();
+      checkPortalInteraction();
+    }, { passive: false });
+
+    function triggerJump() {
+      if (gameState.isQuizActive) return;
+      if (player.isGrounded || player.coyoteTimer > 0) {
+        player.vel.y = player.jumpPower;
+        player.isGrounded = false;
+        player.coyoteTimer = 0;
+        player.jumpsRemaining = 1;
+        AudioEngine.jump();
+      } else if (player.jumpsRemaining > 0) {
+        player.vel.y = player.jumpPower * 0.95;
+        player.jumpsRemaining--;
+        AudioEngine.doubleJump();
+      }
+    }
+
+    /* LEVEL BUILDER */
+    function clearLevel() {
+      platforms.forEach(p => scene.remove(p.mesh));
+      coins.forEach(c => scene.remove(c.mesh));
+      quizPortals.forEach(q => scene.remove(q.mesh));
+      if (finishGate) scene.remove(finishGate.group);
+      platforms = []; coins = []; quizPortals = []; finishGate = null; gateBarrier = null;
+    }
+
+    function createPlatform(x, y, z, w, h, d, color, edgeColor = 0x38bdf8) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+
+      const geo = new THREE.BoxGeometry(w, h, d);
+      const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color }));
+      mesh.receiveShadow = true;
+      mesh.castShadow = true;
+      group.add(mesh);
+
+      const edges = new THREE.EdgesGeometry(geo);
+      const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: edgeColor, linewidth: 2 }));
+      group.add(line);
+
+      scene.add(group);
+      platforms.push({ mesh: group, x, y, z, w, h, d });
+    }
+
+    function createCryptoCrystal(x, y, z) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+
+      const geo = new THREE.OctahedronGeometry(0.38, 0);
+      const mat = new THREE.MeshLambertMaterial({ color: 0x38bdf8, emissive: 0x0284c7 });
+      const mesh = new THREE.Mesh(geo, mat);
+      group.add(mesh);
+
+      const ringGeo = new THREE.TorusGeometry(0.5, 0.03, 8, 24);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, wireframe: true });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+      group.add(ring);
+
+      scene.add(group);
+      coins.push({ mesh: group, gem: mesh, ring, x, y, z, collected: false });
+    }
+
+    function createQuizPortal(x, y, z, qIdx) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+
+      const pedestal = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.6, 1.8, 0.6, 16),
+        new THREE.MeshLambertMaterial({ color: 0x1e293b })
+      );
+      pedestal.position.y = 0.3;
+      group.add(pedestal);
+
+      const aura = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.4, 3.2),
+        new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.7, side: THREE.DoubleSide })
+      );
+      aura.position.y = 1.9;
+      group.add(aura);
+
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(1.4, 0.06, 12, 32),
+        new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+      );
+      ring.position.y = 1.9;
+      group.add(ring);
+
+      scene.add(group);
+      quizPortals.push({ mesh: group, aura, ring, x, y, z, qIndex: qIdx, solved: false });
+    }
+
+    function createFinishGate(x, y, z) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+
+      const pillarMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+      const pL = new THREE.Mesh(new THREE.BoxGeometry(0.6, 4.2, 0.6), pillarMat);
+      pL.position.set(-2.0, 2.1, 0);
+      const pR = pL.clone();
+      pR.position.x = 2.0;
+      const topBeam = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.6, 0.6), pillarMat);
+      topBeam.position.set(0, 4.2, 0);
+      group.add(pL, pR, topBeam);
+
+      gateBarrier = new THREE.Mesh(
+        new THREE.BoxGeometry(3.6, 4.0, 0.2),
+        new THREE.MeshBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.75, side: THREE.DoubleSide })
+      );
+      gateBarrier.position.set(0, 2.0, 0);
+      group.add(gateBarrier);
+
+      scene.add(group);
+      finishGate = { group, barrier: gateBarrier, x, y, z };
+    }
+
+    function buildWorldForQuestion(idx) {
+      clearLevel();
+      currentQuestionIdx = idx;
+      gameState.gateUnlocked = false;
+
+      const qItem = SMA_STS_QUESTIONS[idx] || SMA_STS_QUESTIONS[0];
+      document.getElementById('hudQuestionIndex').innerText = idx + 1;
+      document.getElementById('hudLevelTopic').innerText = qItem.module;
+
+      // Platform start
+      createPlatform(0, 0, 0, 8, 1, 8, 0x1e293b, 0x06b6d4);
+
+      let curZ = -7, curY = 0;
+      for (let i = 0; i < 4; i++) {
+        curZ -= 5.8; curY += 0.35;
+        createPlatform(0, curY, curZ, 4.8, 0.8, 4.2, 0x1e293b, 0x06b6d4);
+        createCryptoCrystal(0, curY + 1.3, curZ);
+      }
+
+      // Quiz Portal Platform
+      curZ -= 6.8;
+      createPlatform(0, curY, curZ, 8, 1, 8, 0x0284c7, 0x38bdf8);
+      createQuizPortal(0, curY + 0.5, curZ, idx);
+
+      for (let i = 0; i < 3; i++) {
+        curZ -= 5.8; curY += 0.3;
+        createPlatform(0, curY, curZ, 4.8, 0.8, 4.2, 0x1e293b, 0x06b6d4);
+        createCryptoCrystal(0, curY + 1.3, curZ);
+      }
+
+      curZ -= 7.5;
+      createPlatform(0, curY, curZ, 9, 1, 9, 0x064e3b, 0x10b981);
+      createFinishGate(0, curY + 0.5, curZ);
+
+      gameState.checkpoint = { x: 0, y: 1.5, z: 0 };
+      respawnPlayer();
+    }
+
+    function respawnPlayer() {
+      player.pos.set(gameState.checkpoint.x, gameState.checkpoint.y, gameState.checkpoint.z);
+      player.vel.set(0, 0, 0);
+      player.isGrounded = true;
+      player.jumpsRemaining = 2;
+    }
+
+    /* PHYSICS LOOP */
+    let lastTime = performance.now();
+
+    function updatePhysics(dt) {
+      if (gameState.isQuizActive || gameState.isPaused) return;
+
+      let mx = joystickVector.x;
+      let mz = joystickVector.y;
+      if (keys.w) mz -= 1;
+      if (keys.s) mz += 1;
+      if (keys.a) mx -= 1;
+      if (keys.d) mx += 1;
+
+      const inputLen = Math.hypot(mx, mz);
+      let worldMoveX = 0, worldMoveZ = 0;
+
+      if (inputLen > 0.08) {
+        worldMoveX = mx / Math.max(1, inputLen);
+        worldMoveZ = mz / Math.max(1, inputLen);
+
+        const targetRot = Math.atan2(worldMoveX, worldMoveZ) + Math.PI;
+        playerGroup.rotation.y += (targetRot - playerGroup.rotation.y) * 0.25;
+
+        const t = performance.now() * 0.013;
+        legL.rotation.x = Math.sin(t) * 0.55;
+        legR.rotation.x = -Math.sin(t) * 0.55;
+      } else {
+        legL.rotation.x = 0; legR.rotation.x = 0;
+      }
+
+      player.vel.x = worldMoveX * player.speed;
+      player.vel.z = worldMoveZ * player.speed;
+      player.vel.y += player.gravity * dt;
+
+      if (!player.isGrounded) player.coyoteTimer -= dt;
+      else player.coyoteTimer = player.maxCoyote;
+
+      player.pos.x += player.vel.x * dt;
+      player.pos.z += player.vel.z * dt;
+      player.pos.y += player.vel.y * dt;
+
+      // Platform Collisions
+      player.isGrounded = false;
+      const footY = player.pos.y - 0.1;
+      const forgiveEdge = 0.35;
+
+      for (const p of platforms) {
+        const minX = p.x - p.w / 2 - forgiveEdge;
+        const maxX = p.x + p.w / 2 + forgiveEdge;
+        const minZ = p.z - p.d / 2 - forgiveEdge;
+        const maxZ = p.d / 2 + p.z + forgiveEdge;
+        const topY = p.y + p.h / 2;
+
+        if (player.pos.x >= minX && player.pos.x <= maxX &&
+            player.pos.z >= minZ && player.pos.z <= maxZ) {
+          if (player.pos.y >= topY - 0.35 && footY <= topY + 0.35 && player.vel.y <= 0) {
+            player.pos.y = topY;
+            player.vel.y = 0;
+            player.isGrounded = true;
+            player.jumpsRemaining = 2;
+            break;
+          }
+        }
+      }
+
+      if (!gameState.gateUnlocked && finishGate) {
+        if (Math.hypot(player.pos.x - finishGate.x, player.pos.z - finishGate.z) < 2.0) {
+          player.pos.z = finishGate.z + 2.1;
+        }
+      }
+
+      if (player.pos.y < -12) {
+        gameState.lives--;
+        updateHud();
+        AudioEngine.wrong();
+        if (gameState.lives <= 0) showGameOver();
+        else respawnPlayer();
+      }
+
+      playerGroup.position.copy(player.pos);
+
+      camera.position.set(player.pos.x, player.pos.y + 3.9, player.pos.z + 8.8);
+      camera.lookAt(player.pos.x, player.pos.y + 1.2, player.pos.z);
+
+      coins.forEach(c => {
+        if (!c.collected) {
+          c.gem.rotation.y += 0.03;
+          c.ring.rotation.z += 0.04;
+          if (player.pos.distanceTo(c.mesh.position) < 1.3) {
+            c.collected = true;
+            scene.remove(c.mesh);
+            gameState.coins += 1;
+            AudioEngine.coin();
+          }
+        }
+      });
+
+      let nearPortal = false;
+      quizPortals.forEach(qp => {
+        qp.ring.rotation.z += 0.03;
+        qp.aura.rotation.y += 0.01;
+        if (!qp.solved && player.pos.distanceTo(qp.mesh.position) < 3.4) {
+          nearPortal = true;
+        }
+      });
+
+      document.getElementById('interaction-hint').style.display = nearPortal ? 'block' : 'none';
+      const btnInteractEl = document.getElementById('btnInteract');
+      if (btnInteractEl) {
+        if (nearPortal) btnInteractEl.classList.add('btn-portal-active');
+        else btnInteractEl.classList.remove('btn-portal-active');
+      }
+
+      if (finishGate && gameState.gateUnlocked && player.pos.distanceTo(finishGate.group.position) < 2.5) {
+        advanceNextQuestion();
+      }
+
+      if (platforms.length > 0) {
+        const prog = ((currentQuestionIdx + (gameState.gateUnlocked ? 1 : 0.5)) / 20) * 100;
+        document.getElementById('hudProgress').style.width = `${Math.min(100, prog)}%`;
+      }
+    }
+
+    /* KUIS ENGINE */
+    let currentQuizItem = null;
+
+    function checkPortalInteraction() {
+      for (const qp of quizPortals) {
+        if (!qp.solved && player.pos.distanceTo(qp.mesh.position) < 3.8) {
+          openQuiz(qp);
+          return;
+        }
+      }
+    }
+
+    function openQuiz(portal) {
+      gameState.isQuizActive = true;
+      setMobileControlsVisible(false);
+      currentQuizItem = SMA_STS_QUESTIONS[portal.qIndex];
+
+      document.getElementById('modalQNum').innerText = portal.qIndex + 1;
+      document.getElementById('quizTopicTag').innerText = currentQuizItem.module;
+      document.getElementById('quizTopicTitle').innerText = `Terminal Soal STS Ke-${portal.qIndex + 1}`;
+      document.getElementById('quizQuestionText').innerHTML = currentQuizItem.q;
+
+      const optsContainer = document.getElementById('quizOptionsContainer');
+      optsContainer.innerHTML = '';
+
+      currentQuizItem.options.forEach((opt, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'quiz-option';
+        btn.innerHTML = `<span style="font-family:'Orbitron', monospace; color:#38bdf8; font-weight:800;">[${String.fromCharCode(65 + idx)}]</span> <span>${opt}</span>`;
+        btn.onclick = () => selectQuizAnswer(idx, btn, portal);
+        optsContainer.appendChild(btn);
+      });
+
+      document.getElementById('quizFeedback').style.display = 'none';
+      document.getElementById('btnContinueGame').style.display = 'none';
+      document.getElementById('quizModal').style.display = 'flex';
+    }
+
+    function selectQuizAnswer(idx, element, portal) {
+      const feedback = document.getElementById('quizFeedback');
+      const allOptions = document.querySelectorAll('.quiz-option');
+      allOptions.forEach(o => o.style.pointerEvents = 'none');
+
+      if (idx === currentQuizItem.correct) {
+        element.classList.add('correct');
+        feedback.className = 'quiz-feedback feedback-correct';
+        feedback.innerHTML = `<strong>JAWABAN BENAR! (+5 POIN) ⚡</strong><br>${currentQuizItem.explanation}`;
+        AudioEngine.correct();
+
+        gameState.score += 5; // 20 soal x 5 = 100
+        gameState.correctCount += 1;
+        portal.solved = true;
+        portal.aura.material.color.setHex(0x10b981);
+        portal.ring.material.color.setHex(0x34d399);
+        gameState.gateUnlocked = true;
+
+        if (finishGate && finishGate.barrier) {
+          finishGate.barrier.material.color.setHex(0x10b981);
+          finishGate.barrier.material.opacity = 0.25;
+          AudioEngine.portalUnlock();
+        }
+        updateHud();
+      } else {
+        element.classList.add('wrong');
+        allOptions[currentQuizItem.correct].classList.add('correct');
+        feedback.className = 'quiz-feedback feedback-wrong';
+        feedback.innerHTML = `<strong>JAWABAN KURANG TEPAT! (0 POIN) 💡</strong><br>${currentQuizItem.explanation}`;
+        AudioEngine.wrong();
+        portal.solved = true;
+        gameState.gateUnlocked = true;
+        if (finishGate && finishGate.barrier) {
+          finishGate.barrier.material.color.setHex(0x10b981);
+          finishGate.barrier.material.opacity = 0.25;
+        }
+        updateHud();
+      }
+
+      feedback.style.display = 'block';
+      const btnCont = document.getElementById('btnContinueGame');
+      btnCont.style.display = 'inline-block';
+      btnCont.onclick = () => {
+        document.getElementById('quizModal').style.display = 'none';
+        gameState.isQuizActive = false;
+        setMobileControlsVisible(true);
+      };
+    }
+
+    function advanceNextQuestion() {
+      if (currentQuestionIdx < 19) {
+        buildWorldForQuestion(currentQuestionIdx + 1);
+        showToast(`Melangkah ke Soal ${currentQuestionIdx + 1}/20!`);
+      } else {
+        showFinalWinScreen();
+      }
+    }
+
+    function updateHud() {
+      document.getElementById('hudScore').innerText = gameState.score;
+      document.getElementById('hudLives').innerText = gameState.lives;
+      document.getElementById('hudStudentName').innerText = studentData.name || 'Siswa SMA';
+      document.getElementById('hudStudentClass').innerText = `(${studentData.className || 'SMA X A'})`;
+
+      document.getElementById('menuDisplayStudent').innerText = studentData.name || 'Belum diisi';
+      document.getElementById('menuDisplayClass').innerText = studentData.className || 'SMA X A';
+    }
+
+    function showFinalWinScreen() {
+      gameState.isQuizActive = true;
+      setMobileControlsVisible(false);
+      document.getElementById('winStudentName').innerText = studentData.name;
+      document.getElementById('winStudentClass').innerText = studentData.className;
+      document.getElementById('winCorrectCount').innerText = gameState.correctCount;
+      document.getElementById('winScore').innerText = gameState.score;
+      document.getElementById('winTime').innerText = `${totalElapsedTime}s`;
+      document.getElementById('winModal').style.display = 'flex';
+      sendDataToSpreadsheet(`Selesai STS (Skor: ${gameState.score}/100)`);
+    }
+
+    function showGameOver() {
+      gameState.isQuizActive = true;
+      setMobileControlsVisible(false);
+      document.getElementById('gameOverModal').style.display = 'flex';
+    }
+
+    /* LISTENERS */
+    const mainMenuModal = document.getElementById('mainMenuModal');
+    const pauseMenuModal = document.getElementById('pauseMenuModal');
+    const studentModal = document.getElementById('studentModal');
+    const leaderboardModal = document.getElementById('leaderboardModal');
+    const cheatsheetModal = document.getElementById('cheatsheetModal');
+    const rulesModal = document.getElementById('rulesModal');
+
+    document.getElementById('btnStartGame').addEventListener('click', () => {
+      if (!studentData.name) {
+        studentModal.style.display = 'flex';
+        setMobileControlsVisible(false);
+        return;
+      }
+      mainMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+      startTimer();
+    });
+
+    document.getElementById('btnMenuRules').addEventListener('click', () => {
+      rulesModal.style.display = 'flex';
+    });
+    document.getElementById('btnCloseRules').addEventListener('click', () => {
+      rulesModal.style.display = 'none';
+    });
+
+    document.getElementById('btnMenuLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'flex';
+      fetchAllLeaderboard();
+    });
+
+    document.getElementById('btnChangeStudent').addEventListener('click', () => {
+      document.getElementById('inputStudentName').value = studentData.name;
+      document.getElementById('inputStudentClass').value = studentData.className;
+      document.getElementById('inputStudentAbsen').value = studentData.absen;
+      studentModal.style.display = 'flex';
+      setMobileControlsVisible(false);
+    });
+
+    document.getElementById('btnSaveStudent').addEventListener('click', () => {
+      const name = document.getElementById('inputStudentName').value.trim();
+      const cls = document.getElementById('inputStudentClass').value;
+      const abs = document.getElementById('inputStudentAbsen').value.trim();
+      if (!name) return alert("Mohon masukkan nama lengkap siswa!");
+
+      studentData.name = name;
+      studentData.className = cls;
+      studentData.absen = abs;
+      localStorage.setItem('sma_student_name', studentData.name);
+      localStorage.setItem('sma_student_class', studentData.className);
+      localStorage.setItem('sma_student_absen', studentData.absen);
+
+      studentModal.style.display = 'none';
+      mainMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+      updateHud();
+      startTimer();
+      sendDataToSpreadsheet("Login STS");
+      showToast(`Selamat datang agen siber, ${studentData.name}!`);
+    });
+
+    document.getElementById('btnCancelStudent').addEventListener('click', () => {
+      studentModal.style.display = 'none';
+      if (!gameState.isPaused && studentData.name) {
+        setMobileControlsVisible(true);
+      }
+    });
+
+    document.getElementById('btnOpenInGameMenu').addEventListener('click', () => {
+      gameState.isPaused = true;
+      setMobileControlsVisible(false);
+      pauseMenuModal.style.display = 'flex';
+    });
+
+    document.getElementById('btnResumeGame').addEventListener('click', () => {
+      pauseMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+    });
+
+    document.getElementById('btnPauseLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'flex';
+      fetchAllLeaderboard();
+    });
+
+    document.getElementById('btnReturnToMainMenu').addEventListener('click', () => {
+      pauseMenuModal.style.display = 'none';
+      mainMenuModal.style.display = 'flex';
+      gameState.isPaused = true;
+      setMobileControlsVisible(false);
+    });
+
+    document.getElementById('btnCloseLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'none';
+      if (!gameState.isPaused && !gameState.isQuizActive && studentData.name && mainMenuModal.style.display === 'none') {
+        setMobileControlsVisible(true);
+      }
+    });
+
+    document.getElementById('btnWinLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'flex';
+      fetchAllLeaderboard();
+    });
+
+    document.getElementById('btnPlayAgain').addEventListener('click', () => {
+      document.getElementById('winModal').style.display = 'none';
+      gameState.score = 0;
+      gameState.correctCount = 0;
+      gameState.lives = 3;
+      gameState.isQuizActive = false;
+      totalElapsedTime = 0;
+      setMobileControlsVisible(true);
+      updateHud();
+      buildWorldForQuestion(0);
+      startTimer();
+    });
+
+    document.getElementById('btnRestartLevel').addEventListener('click', () => {
+      document.getElementById('gameOverModal').style.display = 'none';
+      gameState.lives = 3;
+      gameState.isQuizActive = false;
+      setMobileControlsVisible(true);
+      updateHud();
+      respawnPlayer();
+    });
+
+    function openCheatsheet() {
+      cheatsheetModal.style.display = 'flex';
+      initPigpenCheatGrid();
+    }
+
+    document.getElementById('btnOpenTools').addEventListener('click', openCheatsheet);
+    document.getElementById('btnMenuCheat').addEventListener('click', openCheatsheet);
+    document.getElementById('btnPauseCheat').addEventListener('click', openCheatsheet);
+    document.getElementById('btnQuizOpenCheat').addEventListener('click', openCheatsheet);
+
+    document.getElementById('btnCloseCheat').addEventListener('click', () => {
+      cheatsheetModal.style.display = 'none';
+    });
+
+    document.querySelectorAll('.m-tab').forEach(tabBtn => {
+      tabBtn.addEventListener('click', () => {
+        document.querySelectorAll('.m-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tabBtn.classList.add('active');
+        const targetId = tabBtn.getAttribute('data-tab');
+        const content = document.getElementById(targetId);
+        if (content) content.classList.add('active');
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    /* LOOP */
+    function animate(currentTime) {
+      requestAnimationFrame(animate);
+      const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
+      lastTime = currentTime;
+
+      updatePhysics(dt);
+      renderer.render(scene, camera);
+    }
+
+    initPigpenCheatGrid();
+    buildWorldForQuestion(0);
+    updateHud();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Game Edukasi Koding & Kriptografi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0e1a;
+      color: #f8fafc;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      color: #38bdf8;
+      text-align: center;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    p.sub {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      text-align: center;
+      margin-bottom: 32px;
+      max-width: 600px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 840px;
+    }
+    .card {
+      background: #111827;
+      border: 2px solid #1e293b;
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: #06b6d4;
+      box-shadow: 0 16px 40px rgba(6, 182, 212, 0.25);
+    }
+    .badge {
+      display: inline-block;
+      align-self: flex-start;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .badge-sma { background: rgba(6, 182, 212, 0.15); color: #38bdf8; border: 1px solid #06b6d4; }
+    .badge-smp { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid #f59e0b; }
+    .title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.25rem;
+      margin-bottom: 10px;
+    }
+    .desc {
+      color: #cbd5e1;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .topics {
+      list-style: none;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-bottom: 24px;
+    }
+    .topics li { margin-bottom: 5px; }
+    .topics li::before { content: "⚡ "; color: #38bdf8; }
+    .btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      text-decoration: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      transition: all 0.15s;
+    }
+    .btn-sma {
+      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      color: white;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.35);
+    }
+    .btn-sma:hover { filter: brightness(1.15); }
+    .btn-smp {
+      background: linear-gradient(135deg, #d97706, #f59e0b);
+      color: #0f172a;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+    }
+    .btn-smp:hover { filter: brightness(1.15); }
+  </style>
+</head>
+<body>
+  <h1>PORTAL MEDIA PEMBELAJARAN 3D</h1>
+  <p class="sub">Pilih petualangan interaktif koding dan kriptografi sesuai jenjang pendidikan:</p>
+
+  <div class="grid">
+    <!-- KARTU SMA -->
+    <div class="card" style="border-color: #06b6d4;">
+      <div>
+        <div class="badge badge-sma">SMA Kelas X · Fase E</div>
+        <h2 class="title" style="color: #38bdf8;">CyberQuest 3D</h2>
+        <p class="desc">Petualangan siber 7 modul: Kriptografi klasik, Algoritma Brute Force, serta Fondasi Pemrograman Python.</p>
+        <ul class="topics">
+          <li>BK 1.1: Traffic Jam & Brute Force</li>
+          <li>BK 1.1: Caesar Cipher (Modulo 26)</li>
+          <li>BK 1.1: Pigpen Cipher Geometris</li>
+          <li>AP 2.1: Variabel & Tipe Data Python</li>
+          <li>AP 2.1: Operator Aritmatika & Assignment</li>
+          <li>AP 2.2: Operator Perbandingan & Logika</li>
+          <li>AP 2.2: Percabangan if - elif - else</li>
+        </ul>
+      </div>
+      <a href="sntSMAgame/index.html" class="btn btn-sma">MAINKAN GAME SMA ➔</a>
+    </div>
+
+    <!-- KARTU SMP -->
+    <div class="card">
+      <div>
+        <div class="badge badge-smp">SMP Kelas VII</div>
+        <h2 class="title" style="color: #facc15;">Scratch Obby 3D</h2>
+        <p class="desc">Petualangan platformer edukatif 3D untuk menguasai konsep pemrograman visual Scratch dan logika algoritma dasar.</p>
+        <ul class="topics">
+          <li>Green Flag & Event Blocks</li>
+          <li>Sistem Koordinat X & Y Stage</li>
+          <li>Gerakan Sprite & Perubahan Posisi</li>
+          <li>Looks & Animasi Percakapan</li>
+          <li>Looping (Forever, Repeat)</li>
+          <li>Variabel Skor & Nyawa</li>
+        </ul>
+      </div>
+      <a href="sntSMPgame/index.html" class="btn btn-smp">MAINKAN GAME SMP ➔</a>
+    </div>
+  </div>
+</body>
+</html>
+

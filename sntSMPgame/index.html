@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Scratch Coding Adventure 3D: Asesmen Sumatif Tengah Semester (STS) – SMP Kelas VII</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0f172a;
+      font-family: 'Nunito', sans-serif;
+      touch-action: none;
+    }
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* HUD */
+    #hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 50;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px;
+    }
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-left-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .hud-panel {
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(8px);
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 6px 10px;
+      color: white;
+      pointer-events: auto;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .hud-panel span { color: #facc15; font-family: 'Fredoka One', cursive; font-size: 14px; }
+    
+    .btn-icon-menu {
+      background: #3b82f6;
+      color: white;
+      border: 2px solid #93c5fd;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 12px;
+      cursor: pointer;
+      pointer-events: auto;
+      box-shadow: 0 3px 0 #1d4ed8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-icon-menu:active { transform: translateY(2px); box-shadow: 0 1px 0 #1d4ed8; }
+    .btn-rules {
+      background: #8b5cf6;
+      border-color: #c4b5fd;
+      box-shadow: 0 3px 0 #6d28d9;
+    }
+
+    .progress-box {
+      width: 80px;
+      height: 8px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 3px;
+      border: 1px solid #22c55e;
+    }
+    .progress-fill { height: 100%; width: 0%; background: #22c55e; transition: width 0.3s; }
+
+    #interaction-hint {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #f59e0b;
+      color: #0f172a;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-weight: 900;
+      font-size: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 60;
+      cursor: pointer;
+      pointer-events: auto;
+      animation: bounce 0.8s infinite alternate ease-in-out;
+    }
+    @keyframes bounce { from { transform: translate(-50%, -46%); } to { transform: translate(-50%, -54%); } }
+
+    #notif-toast {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      display: none;
+      z-index: 10000;
+      pointer-events: none;
+      text-align: center;
+    }
+
+    input, textarea, select {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      touch-action: manipulation !important;
+    }
+
+    /* KONTROL SENTUH HP */
+    #mobileControls {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+    }
+
+    #joystickZone {
+      position: fixed;
+      bottom: 24px;
+      left: 20px;
+      width: 130px;
+      height: 130px;
+      z-index: 101;
+      pointer-events: auto;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #joystickBase {
+      width: 120px;
+      height: 120px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 3px solid rgba(56, 189, 248, 0.6);
+      backdrop-filter: blur(6px);
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    #joystickBase::before {
+      content: '';
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border: 1px dashed rgba(56, 189, 248, 0.4);
+      border-radius: 50%;
+    }
+    #joystickStick {
+      width: 52px;
+      height: 52px;
+      background: radial-gradient(circle at 35% 35%, #38bdf8, #0284c7);
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    #mobileActionZone {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-end;
+      z-index: 101;
+      pointer-events: auto;
+      touch-action: none;
+    }
+    .action-touch-btn {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      color: white;
+      font-family: 'Fredoka One', cursive;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      outline: none;
+      transition: transform 0.08s ease;
+    }
+    .action-touch-btn .btn-icon { font-size: 20px; line-height: 1; pointer-events: none; }
+    .action-touch-btn .btn-label { font-size: 10px; font-family: 'Nunito', sans-serif; font-weight: 900; letter-spacing: 0.5px; margin-top: 2px; pointer-events: none; }
+    #btnJump {
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      box-shadow: 0 4px 0 #14532d, 0 6px 16px rgba(0,0,0,0.4);
+    }
+    #btnJump:active, #btnJump.active-touch {
+      transform: translateY(3px) scale(0.94);
+      box-shadow: 0 1px 0 #14532d;
+      filter: brightness(1.15);
+    }
+    #btnInteract {
+      background: linear-gradient(135deg, #f59e0b, #b45309);
+      box-shadow: 0 4px 0 #78350f, 0 6px 16px rgba(0,0,0,0.4);
+    }
+    #btnInteract:active, #btnInteract.active-touch {
+      transform: translateY(3px) scale(0.94);
+      box-shadow: 0 1px 0 #78350f;
+      filter: brightness(1.15);
+    }
+    .btn-portal-active {
+      animation: portalAlertGlow 0.8s infinite alternate ease-in-out !important;
+      border-color: #fef08a !important;
+    }
+    @keyframes portalAlertGlow {
+      0% { transform: scale(1); box-shadow: 0 0 10px #f59e0b, 0 4px 0 #78350f; }
+      100% { transform: scale(1.1); box-shadow: 0 0 24px #facc15, 0 4px 0 #78350f; }
+    }
+
+    @media (max-width: 600px) {
+      .hud-panel { font-size: 10px; padding: 4px 8px; }
+      .hud-panel span { font-size: 12px; }
+      .btn-icon-menu { font-size: 11px; padding: 5px 8px; }
+      #joystickZone { bottom: 16px; left: 14px; width: 110px; height: 110px; }
+      #joystickBase { width: 100px; height: 100px; }
+      #joystickStick { width: 44px; height: 44px; }
+      #mobileActionZone { bottom: 16px; right: 14px; gap: 10px; }
+      .action-touch-btn { width: 60px; height: 60px; }
+      .action-touch-btn .btn-icon { font-size: 18px; }
+      .action-touch-btn .btn-label { font-size: 9px; }
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(6px);
+      z-index: 100000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 14px;
+    }
+    .modal-card {
+      background: #1e293b;
+      border: 3px solid #f59e0b;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 520px;
+      padding: 20px;
+      color: white;
+      text-align: center;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.6);
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+    .modal-title { font-family: 'Fredoka One', cursive; font-size: 22px; color: #facc15; margin-bottom: 6px; }
+    .form-group { text-align: left; margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; }
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      font-family: 'Nunito', sans-serif;
+    }
+    .form-input:focus { border-color: #38bdf8; }
+
+    .btn {
+      background: #f59e0b;
+      color: #0f172a;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #b45309;
+      margin: 4px;
+      display: inline-block;
+      transition: 0.1s;
+    }
+    .btn:hover { background: #fbbf24; }
+    .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #b45309; }
+    .btn-green { background: #22c55e; color: white; box-shadow: 0 4px 0 #15803d; }
+    .btn-purple { background: #8b5cf6; color: white; box-shadow: 0 4px 0 #6d28d9; }
+    .btn-blue { background: #0ea5e9; color: white; box-shadow: 0 4px 0 #0369a1; }
+    .btn-gray { background: #475569; color: white; box-shadow: 0 4px 0 #1e293b; }
+
+    .quiz-question { background: #0f172a; border: 2px solid #38bdf8; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700; margin-bottom: 12px; line-height: 1.5; text-align: left; }
+    .quiz-options { display: grid; gap: 8px; margin-bottom: 12px; }
+    .quiz-option {
+      background: #334155;
+      border: 2px solid #475569;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: left;
+      cursor: pointer;
+    }
+    .quiz-option:hover { border-color: #f59e0b; }
+    .quiz-option.correct { background: #166534 !important; border-color: #22c55e !important; }
+    .quiz-option.wrong { background: #991b1b !important; border-color: #ef4444 !important; }
+    .quiz-feedback { padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; margin-bottom: 12px; display: none; text-align: left; line-height: 1.5; }
+    .feedback-correct { background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #86efac; }
+    .feedback-wrong { background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; color: #fca5a5; }
+
+    .table-container { max-height: 250px; overflow-y: auto; margin-top: 10px; border-radius: 8px; border: 1px solid #334155; }
+    .leaderboard-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+    .leaderboard-table th { background: #0f172a; color: #facc15; padding: 8px 10px; position: sticky; top: 0; }
+    .leaderboard-table td { padding: 8px 10px; border-top: 1px solid #334155; }
+  </style>
+</head>
+<body>
+
+  <div id="canvas-container"></div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-top">
+      <div class="hud-left-group">
+        <button class="btn-icon-menu" id="btnOpenInGameMenu">⚙️ MENU</button>
+        <button class="btn-icon-menu btn-rules" id="btnOpenRules">📜 RULES STS</button>
+        <div class="hud-panel">
+          👤 <span id="hudStudentName">Siswa SMP</span>
+          <small id="hudStudentClass" style="color:#94a3b8; font-size:10px; margin-left:4px;">(SMP VII A)</small>
+        </div>
+      </div>
+      <div class="hud-panel" style="min-width: 120px; text-align:center;">
+        <div>SOAL STS: <span id="hudLevel">1</span>/20</div>
+        <div class="progress-box"><div class="progress-fill" id="hudProgress"></div></div>
+      </div>
+      <div class="hud-panel">
+        ⏱️ <span id="hudTimer">0s</span> | ⭐ SKOR: <span id="hudScore">0</span>/100 | ❤️ <span id="hudLives">3</span>
+      </div>
+    </div>
+    <div></div>
+  </div>
+
+  <div id="interaction-hint">KETUK TOMBOL [KUIS STS] 📜</div>
+  <div id="notif-toast">Nilai tersimpan di Google Sheets Guru!</div>
+
+  <!-- KONTROL SENTUH HP -->
+  <div id="mobileControls">
+    <div id="joystickZone">
+      <div id="joystickBase">
+        <div id="joystickStick"></div>
+      </div>
+    </div>
+
+    <div id="mobileActionZone">
+      <button class="action-touch-btn" id="btnInteract" type="button" aria-label="Kuis">
+        <span class="btn-icon">📜</span>
+        <span class="btn-label">KUIS</span>
+      </button>
+      <button class="action-touch-btn" id="btnJump" type="button" aria-label="Lompat">
+        <span class="btn-icon">⬆️</span>
+        <span class="btn-label">LOMPAT</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: MENU UTAMA -->
+  <div class="modal-overlay" id="mainMenuModal">
+    <div class="modal-card">
+      <div style="font-size:11px; color:#38bdf8; font-weight:800; text-transform:uppercase; margin-bottom:4px;">
+        Asesmen Sumatif Tengah Semester (STS) · Kelas VII SMP
+      </div>
+      <h1 class="modal-title">🐱 SCRATCH OBBY 3D: STS SMP</h1>
+      <p style="color:#cbd5e1; font-size:12.5px; margin-bottom: 14px;">
+        Ujian 20 Soal Pilihan Ganda: Computational Thinking, Pesan Rahasia, Code Escape, Animasi Cat walks, Siklus Kupu-kupu, Animal Guess, Finding Panda, & Driving Game.
+      </p>
+
+      <div style="background:#0f172a; padding:12px; border-radius:12px; margin-bottom:14px; text-align:left; font-size:12px; border:1px solid #334155; line-height:1.6;">
+        <div>👤 Siswa Aktif: <strong id="menuDisplayStudent" style="color:#38bdf8;">Belum diisi</strong></div>
+        <div>🏫 Kelas Resmi: <strong id="menuDisplayClass" style="color:#facc15;">SMP VII A</strong></div>
+        <div style="font-size:11px; color:#94a3b8; margin-top:4px;">
+          ⭐ <strong>Bobot Penilaian:</strong> 20 Soal · Jawaban Benar = +5 Poin · Nilai Maksimal 100.
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-green" id="btnStartGame" style="padding:14px; font-size:16px;">▶ MULAI ASESMEN STS (20 SOAL)</button>
+        <button class="btn btn-purple" id="btnMenuRules">📜 ATURAN MAIN & PENILAIAN</button>
+        <button class="btn btn-blue" id="btnMenuLeaderboard">🏆 PAPAN PERINGKAT SISWA</button>
+        <button class="btn btn-gray" id="btnChangeStudent">✏️ GANTI IDENTITAS SISWA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: INPUT IDENTITAS DENGAN DROPDOWN KELAS -->
+  <div class="modal-overlay" id="studentModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">📝 DATA IDENTITAS SISWA STS</h2>
+      <p style="color:#cbd5e1; margin-bottom: 12px; font-size:12px;">Pilih kelas resmi dan masukkan nama untuk Google Sheets guru.</p>
+      
+      <div class="form-group">
+        <label>Pilih Kelas Resmi</label>
+        <select id="inputStudentClass" class="form-input" style="cursor:pointer; background:#0f172a; color:white;">
+          <option value="SMP VII A" selected>SMP VII A</option>
+          <option value="SMP VII B">SMP VII B</option>
+          <option value="SMA X A">SMA X A</option>
+          <option value="SMA X B">SMA X B</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Nama Lengkap Siswa</label>
+        <input type="text" id="inputStudentName" class="form-input" placeholder="Contoh: Budi Pratama" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label>Nomor Absen Siswa</label>
+        <input type="number" id="inputStudentAbsen" class="form-input" placeholder="Contoh: 14" autocomplete="off">
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button class="btn btn-green" id="btnSaveStudent" style="width: 100%;">Mulai Asesmen STS ✔</button>
+        <button class="btn btn-gray" id="btnCancelStudent" style="width: 100%; margin-top:6px;">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RULES STS -->
+  <div class="modal-overlay" id="rulesModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">📜 ATURAN MAIN ASESMEN STS</h2>
+      <div style="font-size:12.5px; color:#cbd5e1; text-align:left; line-height:1.7; background:#0f172a; padding:14px; border-radius:12px; border:1px solid #334155; margin-bottom:14px;">
+        <p>🎯 <strong>1. Jumlah Soal:</strong> Ada <strong>20 Soal Pilihan Ganda</strong> berbasis kurikulum Informatika SMP Kelas VII.</p>
+        <p>⭐ <strong>2. Penilaian:</strong> Setiap jawaban benar mendapat <strong>+5 Poin</strong>. Nilai maksimal = <strong>100</strong>. Tidak ada pengurangan nilai.</p>
+        <p>⏱️ <strong>3. Waktu Pengerjaan:</strong> Timer menghitung waktu penyelesaian. Siswa dengan nilai tertinggi dan waktu tercepat menempati peringkat atas!</p>
+        <p>🏁 <strong>4. Alur Permainan:</strong> Jalankan karakter kucing ke terminal kuis di setiap checkpoint untuk membuka soal, lalu lewati gerbang hingga soal ke-20 selesai.</p>
+      </div>
+      <button class="btn btn-green" id="btnCloseRules" style="width: 100%;">Saya Siap Mengerjakan! ➔</button>
+    </div>
+  </div>
+
+  <!-- MODAL: PAUSE -->
+  <div class="modal-overlay" id="pauseMenuModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">⏸️ MENU PERMAINAN</h2>
+      <p style="color:#cbd5e1; margin-bottom:14px;">Permainan dijeda sementara.</p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-green" id="btnResumeGame">Lanjutkan Asesmen ➔</button>
+        <button class="btn btn-purple" id="btnPauseLeaderboard">🏆 Papan Peringkat</button>
+        <button class="btn btn-blue" id="btnPauseRules">📜 Baca Aturan Main</button>
+        <button class="btn btn-gray" id="btnReturnToMainMenu">Ke Menu Utama 🏠</button>
+        <button class="btn btn-amber" onclick="location.href='../index.html'">🌐 Kembali ke Portal Utama</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LEADERBOARD -->
+  <div class="modal-overlay" id="leaderboardModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">🏆 PAPAN PERINGKAT SISWA STS</h2>
+      <p style="font-size:11px; color:#94a3b8;">Skor Tertinggi & Waktu Tercepat Semua Siswa</p>
+      
+      <div id="leaderboardLoading" style="color:#facc15; font-weight:bold; margin:20px 0;">Mengambil data dari Google Sheets...</div>
+      
+      <div class="table-container" id="leaderboardTableWrap" style="display:none;">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Pos</th>
+              <th>Nama Siswa</th>
+              <th>Kelas</th>
+              <th>Skor STS</th>
+              <th>Waktu</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 12px;">
+        <button class="btn btn-green" id="btnCloseLeaderboard">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: QUIZ (20 SOAL) -->
+  <div class="modal-overlay" id="quizModal" style="display: none;">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="font-size:11px; color:#f59e0b; font-weight:800; text-transform:uppercase;" id="quizTopicTitle">Ujian Scratch SMP</div>
+        <div style="font-family:'Fredoka One', cursive; font-size:13px; color:#38bdf8;">
+          SOAL <span id="modalQNum">1</span> / 20
+        </div>
+      </div>
+      
+      <div class="quiz-question" id="quizQuestionText">Pertanyaan...</div>
+      <div class="quiz-options" id="quizOptionsContainer"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <button class="btn btn-blue" id="btnContinueGame" style="display: none; width: 100%;">Lanjutkan ke Soal Berikutnya ➔</button>
+    </div>
+  </div>
+
+  <!-- MODAL: WIN (HASIL EVALUASI 20 SOAL) -->
+  <div class="modal-overlay" id="winModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">🎉 ASESMEN STS TUNTAS!</h2>
+      <p style="color:#cbd5e1; font-size:13px; margin-bottom: 12px;">Seluruh 20 soal asesmen sumatif telah selesai dikerjakan.</p>
+      
+      <div style="background:#0f172a; padding:14px; border-radius:12px; margin-bottom:14px; text-align:left; font-size:13px; line-height: 1.9; border:1px solid #334155;">
+        <div>👤 Siswa: <strong id="winStudentName" style="color:#38bdf8;">-</strong></div>
+        <div>🏫 Kelas: <strong id="winStudentClass" style="color:#facc15;">-</strong></div>
+        <div>✅ Soal Benar: <strong id="winCorrectCount" style="color:#22c55e;">0</strong> / 20 Soal</div>
+        <div>⭐ Nilai Akhir STS: <strong id="winScore" style="color:#ffd152; font-size:16px;">0</strong> / 100</div>
+        <div>⏱️ Total Waktu: <strong id="winTime" style="color:#4ade80;">0s</strong></div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-purple" id="btnWinLeaderboard">Cek Peringkat 🏆</button>
+        <button class="btn btn-green" id="btnPlayAgain">Ulangi Asesmen STS 🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GAME OVER -->
+  <div class="modal-overlay" id="gameOverModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title" style="color: #ef4444;">💀 NYAWA HABIS</h2>
+      <p style="color:#cbd5e1; margin-bottom: 14px; font-size: 13px;">Belajar dari kesalahan adalah kunci programmer sukses!</p>
+      <button class="btn btn-green" id="btnRestartLevel">Lanjutkan dari Checkpoint 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    const SPREADSHEET_URL = "https://script.google.com/macros/s/AKfycbzrmavzVn7tX680Jrn6z_M-47x-1X2ouQLy3_qWNaEhet6mIO50vRn-3gzVjz7G_R3E/exec";
+
+    let studentData = {
+      name: localStorage.getItem('scratch_student_name') || '',
+      className: localStorage.getItem('scratch_student_class') || 'SMP VII A',
+      absen: localStorage.getItem('scratch_student_absen') || ''
+    };
+
+    let totalElapsedTime = 0;
+    let timerInterval = null;
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!gameState.isQuizActive && !gameState.isPaused && studentData.name) {
+          totalElapsedTime++;
+          document.getElementById('hudTimer').innerText = `${totalElapsedTime}s`;
+        }
+      }, 1000);
+    }
+
+    function sendDataToSpreadsheet(statusDesc) {
+      if (!studentData.name) return;
+      const params = new URLSearchParams({
+        nama: studentData.name,
+        kelas: studentData.className || "SMP VII A",
+        absen: studentData.absen || "-",
+        skor: gameState.score,
+        benar: gameState.correctCount,
+        waktu: totalElapsedTime,
+        status: statusDesc || "Update STS SMP",
+        t: Date.now()
+      });
+      const img = new Image();
+      img.onload = () => showToast("✅ Nilai Tersimpan di Google Sheets!");
+      img.onerror = () => showToast("✅ Data telah dikirim!");
+      img.src = `${SPREADSHEET_URL}?${params.toString()}`;
+    }
+
+    function fetchAllLeaderboard() {
+      const loading = document.getElementById('leaderboardLoading');
+      const wrap = document.getElementById('leaderboardTableWrap');
+      const tbody = document.getElementById('leaderboardBody');
+
+      loading.style.display = 'block';
+      wrap.style.display = 'none';
+      tbody.innerHTML = '';
+
+      fetch(`${SPREADSHEET_URL}?action=getLeaderboard&t=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => {
+          loading.style.display = 'none';
+          wrap.style.display = 'block';
+
+          if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px;">Belum ada data siswa.</td></tr>';
+            return;
+          }
+
+          data.forEach((p, idx) => {
+            const tr = document.createElement('tr');
+            let rankIcon = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1);
+            const isMe = studentData.name && p.nama.toLowerCase() === studentData.name.toLowerCase();
+            if (isMe) tr.style.backgroundColor = "rgba(56, 189, 248, 0.15)";
+
+            tr.innerHTML = `
+              <td style="font-weight:900;">${rankIcon}</td>
+              <td style="font-weight:700; color:${isMe ? '#38bdf8' : '#fff'};">${p.nama} ${isMe ? '⭐' : ''}</td>
+              <td>${p.kelas}</td>
+              <td style="color:#facc15; font-weight:800;">${p.skor}</td>
+              <td style="color:#4ade80; font-weight:700;">${p.waktu}s</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          loading.innerText = "Gagal memuat online. Menampilkan data lokal...";
+          setTimeout(() => {
+            loading.style.display = 'none';
+            wrap.style.display = 'block';
+            tbody.innerHTML = `
+              <tr>
+                <td style="font-weight:900;">🥇</td>
+                <td style="font-weight:700; color:#38bdf8;">${studentData.name || 'Pemain'} ⭐</td>
+                <td>${studentData.className || 'SMP VII A'}</td>
+                <td style="color:#facc15; font-weight:800;">${gameState.score}</td>
+                <td style="color:#4ade80; font-weight:700;">${totalElapsedTime}s</td>
+              </tr>
+            `;
+          }, 500);
+        });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('notif-toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+
+    /* ==========================================================
+       BANK 20 SOAL RESMI ASESMEN STS SMP KELAS VII
+    ========================================================== */
+    const SMP_STS_QUESTIONS = [
+      // 1. Algoritma Mi Instan
+      {
+        module: "1.1 · Intro to Coding & CT",
+        q: "Urutan langkah logis membuat mi instan: (1) Campur bumbu (2) Masukkan mi masak 3 menit (3) Didihkan air (4) Tiriskan air. Urutan algoritma yang benar adalah...",
+        options: [
+          "3 - 2 - 4 - 1",
+          "1 - 2 - 3 - 4",
+          "2 - 3 - 1 - 4",
+          "4 - 3 - 2 - 1"
+        ],
+        correct: 0,
+        explanation: "Algoritma harus berurutan secara logis: Didihkan air (3) ➔ Masukkan mi masak 3 menit (2) ➔ Tiriskan air (4) ➔ Campur bumbu (1)."
+      },
+      // 2. Rute Perpustakaan
+      {
+        module: "1.1 · Intro to Coding & CT",
+        q: "Menyusun petunjuk rute langkah demi langkah dari ruang kelas menuju perpustakaan sekolah menerapkan konsep dasar pemrograman yaitu...",
+        options: [
+          "Sequence (Langkah Berurutan)",
+          "Randomize (Pengacakan)",
+          "Crash Error",
+          "Delete Script"
+        ],
+        correct: 0,
+        explanation: "Sequence adalah susunan instruksi yang dijalankan langkah demi langkah secara berurutan dari awal sampai tujuan tercapai."
+      },
+      // 3. 4 Pilar CT
+      {
+        module: "1.1 · Intro to Coding & CT",
+        q: "Manakah yang merupakan empat pilar dalam Computational Thinking (Berpikir Komputasional)?",
+        options: [
+          "Dekomposisi, Pengenalan Pola, Abstraksi, Algoritma",
+          "Mengetik cepat, Merakit PC, Instal Game, Menggambar",
+          "Searching, Browsing, Chatting, Gaming",
+          "Hardware, Software, Brainware, Malware"
+        ],
+        correct: 0,
+        explanation: "4 pilar utama Berpikir Komputasional adalah Dekomposisi, Pengenalan Pola, Abstraksi, dan Perancangan Algoritma."
+      },
+      // 4. Pesan Rahasia Dictionary
+      {
+        module: "BK 1.1 · Pesan Rahasia",
+        q: "Dalam aktivitas sandi 'Pesan Rahasia', mengganti setiap huruf teks dengan simbol visual tertentu memanfaatkan konsep struktur data...",
+        options: [
+          "Dictionary / Pemetaan Karakter (Key-Value)",
+          "Recycle Bin",
+          "Sound Effect Buffer",
+          "Mouse Pointer Coordinate"
+        ],
+        correct: 0,
+        explanation: "Struktur dictionary memetakan setiap kunci (karakter huruf) dengan nilai pasangannya (simbol visual sandi)."
+      },
+      // 5. Pesan Rahasia Looping
+      {
+        module: "BK 1.1 · Pesan Rahasia",
+        q: "Saat menerjemahkan pesan rahasia huruf demi huruf secara berulang dari awal kalimat hingga akhir, peserta didik menerapkan konsep...",
+        options: [
+          "Looping (Perulangan)",
+          "Shutdown Program",
+          "Formatting Drive",
+          "Hard Reset"
+        ],
+        correct: 0,
+        explanation: "Membaca dan memproses setiap karakter secara berurutan dalam suatu teks menggunakan konsep perulangan (looping)."
+      },
+      // 6. Code Escape Sequence
+      {
+        module: "BK 1.1 · Code Escape : The Lost Password",
+        q: "Dalam tantangan 'Code Escape', jika satu instruksi pembuka sandi tertukar urutannya, maka brankas tidak akan terbuka. Ini menunjukkan pentingnya...",
+        options: [
+          "Ketepatan urutan langkah (Sequence)",
+          "Kecepatan menekan keyboard",
+          "Warna background monitor",
+          "Jumlah kuota internet"
+        ],
+        correct: 0,
+        explanation: "Komputer menjalankan instruksi sesuai urutan yang ditulis programmer. Urutan langkah yang keliru akan menghasilkan keluaran yang salah."
+      },
+      // 7. Code Escape Condition
+      {
+        module: "BK 1.1 · Code Escape : The Lost Password",
+        q: "Perintah: <em>'JIKA di depan ada pintu terkunci, MAKA gunakan kunci perak'</em> adalah penerapan konsep...",
+        options: [
+          "Condition (Percabangan / Pengambilan Keputusan)",
+          "Perulangan tanpa henti",
+          "Penghapusan variabel",
+          "Koneksi jaringan LAN"
+        ],
+        correct: 0,
+        explanation: "Struktur kondisi (if-then) memeriksa suatu keadaan sebelum mengambil keputusan aksi selanjutnya."
+      },
+      // 8. Code Escape Loop
+      {
+        module: "BK 1.1 · Code Escape : The Lost Password",
+        q: "Instruksi: 'Maju 1 langkah, Maju 1 langkah, Maju 1 langkah, Maju 1 langkah' dapat dioptimalkan lebih efisien menggunakan...",
+        options: [
+          "Blok Loop (ulangi 4 kali: Maju 1 langkah)",
+          "Menghapus semua langkah",
+          "Mengganti karakter sprite",
+          "Mematikan layar komputer"
+        ],
+        correct: 0,
+        explanation: "Looping (perulangan) menghemat baris kode dengan mengulang sekumpulan perintah sesuai jumlah yang diinginkan."
+      },
+      // 9. Code Escape Debugging
+      {
+        module: "BK 1.1 · Code Escape : The Lost Password",
+        q: "Menemukan kesalahan pada urutan langkah algoritma dan memperbaikinya agar berhasil lolos disebut proses...",
+        options: [
+          "Debugging",
+          "Browsing",
+          "Hacking Ilegal",
+          "Streaming"
+        ],
+        correct: 0,
+        explanation: "Debugging adalah aktivitas mengidentifikasi, mencari penyebab, dan memperbaiki kesalahan (bug) pada algoritma atau program."
+      },
+      // 10. Cat walks Green Flag
+      {
+        module: "BK 1.1 · Cat walks (Scratch)",
+        q: "Blok apa yang paling umum digunakan untuk memulai pergerakan kucing Scratch saat bendera hijau diklik?",
+        options: [
+          "when green flag clicked",
+          "stop all",
+          "say Goodbye",
+          "hide sprite"
+        ],
+        correct: 0,
+        explanation: "Blok 'when green flag clicked' di kategori Events adalah pemicu utama untuk memulai jalannya animasi atau game Scratch."
+      },
+      // 11. Cat walks Move
+      {
+        module: "BK 1.1 · Cat walks (Scratch)",
+        q: "Agar sprite kucing bergerak melangkah maju secara otomatis di panggung, blok Scratch yang digunakan adalah...",
+        options: [
+          "move 10 steps",
+          "turn 360 degrees",
+          "change volume by -10",
+          "switch backdrop to blank"
+        ],
+        correct: 0,
+        explanation: "Blok 'move 10 steps' di kategori Motion menggerakkan sprite maju searah dengan orientasi hadap sprite."
+      },
+      // 12. Cat walks Bounce
+      {
+        module: "BK 1.1 · Cat walks (Scratch)",
+        q: "Blok yang membuat sprite kucing memantul dan berbalik arah ketika menyentuh pinggir layar panggung adalah...",
+        options: [
+          "if on edge, bounce",
+          "delete this clone",
+          "set drag mode draggable",
+          "ask and wait"
+        ],
+        correct: 0,
+        explanation: "Blok 'if on edge, bounce' memastikan karakter tidak berjalan keluar panggung dan otomatis memantul."
+      },
+      // 13. Cat walks Say Dialog
+      {
+        module: "BK 1.1 · Cat walks (Scratch)",
+        q: "Blok yang dipakai untuk memunculkan balon dialog percakapan teks pada karakter kucing selama 2 detik adalah...",
+        options: [
+          "say [Halo!] for 2 seconds",
+          "think without bubble",
+          "play note 60",
+          "change pitch by 10"
+        ],
+        correct: 0,
+        explanation: "Blok 'say ... for ... seconds' di kategori Looks menampilkan balon ucapan dialog selama durasi waktu tertentu."
+      },
+      // 14. Cat walks Sound
+      {
+        module: "BK 1.1 · Cat walks (Scratch)",
+        q: "Untuk membuat karakter kucing mengeluarkan efek suara khas kucing, blok yang dipilih adalah...",
+        options: [
+          "play sound [Meow] until done",
+          "set volume to 0%",
+          "clear sound effects",
+          "rest for 0.2 beats"
+        ],
+        correct: 0,
+        explanation: "Blok 'play sound [Meow] until done' berada di kategori Sound untuk memainkan rekaman suara kucing meong."
+      },
+      // 15. Butterfly Life Cycle Event
+      {
+        module: "BK 1.2 · Butterfly Life Cycle",
+        q: "Dalam proyek metamorfosis kupu-kupu, blok pemicu yang digunakan agar tahapan berganti saat pemain mengeklik sprite tombol adalah...",
+        options: [
+          "when this sprite clicked",
+          "when loudness > 10",
+          "when timer > 5",
+          "when backdrop switches"
+        ],
+        correct: 0,
+        explanation: "Blok 'when this sprite clicked' bereaksi terhadap klik mouse atau sentuhan jari pemain pada sprite tombol."
+      },
+      // 16. Butterfly Life Cycle Costumes
+      {
+        module: "BK 1.2 · Butterfly Life Cycle",
+        q: "Perubahan wujud dari Telur ➔ Ulat ➔ Kepompong ➔ Kupu-kupu pada sprite Scratch dilakukan dengan memanfaatkan blok...",
+        options: [
+          "next costume / switch costume to",
+          "change x by 10",
+          "change size by 100",
+          "create clone of myself"
+        ],
+        correct: 0,
+        explanation: "Setiap wujud metamorfosis digambar sebagai costume yang berbeda, lalu dipanggil dengan blok 'next costume'."
+      },
+      // 17. Animal Guess Input
+      {
+        module: "BK 1.2 · Animal Guess",
+        q: "Dalam game tebak hewan, blok apa yang memunculkan kotak masukan teks agar pemain bisa mengetikkan jawaban tebakannya?",
+        options: [
+          "ask [Tebak hewanku?] and wait",
+          "say [Tebak hewanku?]",
+          "broadcast [Tebak hewanku?]",
+          "think [Tebak hewanku?]"
+        ],
+        correct: 0,
+        explanation: "Blok 'ask ... and wait' di kategori Sensing membuka kolom input bagi pemain untuk mengetikkan jawaban."
+      },
+      // 18. Animal Guess Condition
+      {
+        module: "BK 1.2 · Animal Guess",
+        q: "Untuk mengecek apakah jawaban pemain sama dengan kata 'Gajah', kombinasi blok logika yang benar adalah...",
+        options: [
+          "if <answer = [Gajah]> then",
+          "repeat until <mouse down?>",
+          "set [Gajah] to (answer)",
+          "wait until <touching edge?>"
+        ],
+        correct: 0,
+        explanation: "Variabel bawaan 'answer' menyimpan teks input pemain dan dibandingkan dengan kata kunci menggunakan blok percabangan 'if <answer = [Gajah]>'."
+      },
+      // 19. Finding Panda Broadcast
+      {
+        module: "BK 1.2 · Finding Panda",
+        q: "Ketika objek panda tersembunyi berhasil diklik pemain, perintah apa yang mengirimkan sinyal kemenangan ke seluruh panggung?",
+        options: [
+          "broadcast [Panda Ditemukan!]",
+          "glide 1 secs to random position",
+          "reset timer",
+          "set rotation style don't rotate"
+        ],
+        correct: 0,
+        explanation: "Blok 'broadcast ...' mengirim sinyal pesan antar-sprite sehingga karakter lain bisa serentak merespons kemenangan."
+      },
+      // 20. Driving Game Keyboard
+      {
+        module: "BK 1.2 · Driving Game",
+        q: "Dalam permainan mengemudi mobil, bagaimana cara memprogram mobil agar melaju maju saat tombol panah atas ditekan?",
+        options: [
+          "when [up arrow] key pressed ➔ move 10 steps",
+          "when green flag clicked ➔ turn 90 degrees",
+          "when this sprite clicked ➔ hide",
+          "if touching color ➔ delete"
+        ],
+        correct: 0,
+        explanation: "Event 'when [up arrow] key pressed' dihubungkan dengan blok 'move 10 steps' untuk mengemudikan kendaraan ke arah depan."
+      }
+    ];
+
+    /* AUDIO ENGINE */
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+      playTone(freq, type = 'sine', duration = 0.15, vol = 0.12) {
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch(e){}
+      },
+      jump() { this.playTone(320, 'square', 0.14, 0.1); },
+      doubleJump() { 
+        this.playTone(460, 'triangle', 0.12, 0.12);
+        setTimeout(() => this.playTone(640, 'triangle', 0.14, 0.12), 60);
+      },
+      coin() { 
+        this.playTone(980, 'sine', 0.08, 0.1); 
+        setTimeout(() => this.playTone(1320, 'sine', 0.16, 0.12), 60);
+      },
+      correct() {
+        this.playTone(523, 'sine', 0.08, 0.12);
+        setTimeout(() => this.playTone(659, 'sine', 0.08, 0.12), 80);
+        setTimeout(() => this.playTone(783, 'sine', 0.22, 0.15), 160);
+      },
+      wrong() {
+        this.playTone(220, 'sawtooth', 0.2, 0.12);
+        setTimeout(() => this.playTone(165, 'sawtooth', 0.25, 0.15), 100);
+      }
+    };
+
+    /* THREE.JS SETUP */
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x38bdf8);
+    scene.fog = new THREE.FogExp2(0x38bdf8, 0.015);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x475569, 0.85));
+    const dirLight = new THREE.DirectionalLight(0xfffaed, 0.9);
+    dirLight.position.set(25, 45, 25);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    let platforms = [], coins = [], quizPortals = [], finishGate = null, gateBarrier = null;
+    let currentQuestionIdx = 0; // 0 s/d 19
+    let gameState = {
+      score: 0,
+      correctCount: 0,
+      coins: 0,
+      lives: 3,
+      checkpoint: { x: 0, y: 1.5, z: 0 },
+      isQuizActive: false,
+      isPaused: false,
+      gateUnlocked: false
+    };
+
+    /* KARAKTER */
+    const playerGroup = new THREE.Group();
+    scene.add(playerGroup);
+
+    const orangeMat = new THREE.MeshLambertMaterial({ color: 0xff8c00 });
+    const blueMat = new THREE.MeshLambertMaterial({ color: 0x00d2ff });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+
+    const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.8, 0.5), orangeMat);
+    bodyMesh.position.y = 0.6;
+    bodyMesh.castShadow = true;
+    playerGroup.add(bodyMesh);
+
+    const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.5), orangeMat);
+    headMesh.position.y = 1.25;
+    headMesh.castShadow = true;
+    playerGroup.add(headMesh);
+
+    const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.05), eyeMat);
+    eyeR.position.set(0.16, 1.28, -0.26);
+    const eyeL = eyeR.clone();
+    eyeL.position.x = -0.16;
+    playerGroup.add(eyeR, eyeL);
+
+    const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3), blueMat);
+    antenna.position.set(0, 1.6, 0);
+    playerGroup.add(antenna);
+
+    const legL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.35, 0.25), blueMat);
+    legL.position.set(-0.2, 0.18, 0);
+    const legR = legL.clone();
+    legR.position.x = 0.2;
+    playerGroup.add(legL, legR);
+
+    const player = {
+      pos: new THREE.Vector3(0, 1.5, 0),
+      vel: new THREE.Vector3(),
+      speed: 10.5,
+      gravity: -21.0,
+      jumpPower: 9.8,
+      isGrounded: false,
+      coyoteTimer: 0.2,
+      maxCoyote: 0.2,
+      jumpsRemaining: 2
+    };
+
+    /* CONTROLS */
+    const keys = { w: false, s: false, a: false, d: false };
+    const joystickVector = { x: 0, y: 0 };
+
+    window.addEventListener('keydown', (e) => {
+      AudioEngine.init();
+      const k = e.key.toLowerCase();
+      if (k === 'w' || e.code === 'ArrowUp') keys.w = true;
+      if (k === 's' || e.code === 'ArrowDown') keys.s = true;
+      if (k === 'a' || e.code === 'ArrowLeft') keys.a = true;
+      if (k === 'd' || e.code === 'ArrowRight') keys.d = true;
+
+      if (e.code === 'Space') triggerJump();
+      if (k === 'e') checkPortalInteraction();
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w' || e.code === 'ArrowUp') keys.w = false;
+      if (k === 's' || e.code === 'ArrowDown') keys.s = false;
+      if (k === 'a' || e.code === 'ArrowLeft') keys.a = false;
+      if (k === 'd' || e.code === 'ArrowRight') keys.d = false;
+    });
+
+    function setMobileControlsVisible(show) {
+      const el = document.getElementById('mobileControls');
+      if (el) el.style.display = show ? 'block' : 'none';
+      if (!show) resetJoystick();
+    }
+
+    const joystickZone = document.getElementById('joystickZone');
+    const joystickBase = document.getElementById('joystickBase');
+    const joystickStick = document.getElementById('joystickStick');
+    let joystickTouchId = null;
+    let joystickCenter = { x: 0, y: 0 };
+    const maxJoystickRadius = 40;
+
+    function resetJoystick() {
+      joystickTouchId = null;
+      joystickVector.x = 0;
+      joystickVector.y = 0;
+      if (joystickStick) joystickStick.style.transform = 'translate(0px, 0px)';
+    }
+
+    function updateJoystickPosition(clientX, clientY) {
+      let dx = clientX - joystickCenter.x;
+      let dy = clientY - joystickCenter.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > maxJoystickRadius) {
+        dx = (dx / dist) * maxJoystickRadius;
+        dy = (dy / dist) * maxJoystickRadius;
+      }
+
+      joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+      joystickVector.x = dx / maxJoystickRadius;
+      joystickVector.y = dy / maxJoystickRadius;
+    }
+
+    if (joystickZone && joystickBase) {
+      joystickZone.addEventListener('touchstart', (e) => {
+        if (joystickTouchId !== null) return;
+        const touch = e.changedTouches[0];
+        joystickTouchId = touch.identifier;
+        AudioEngine.init();
+
+        const rect = joystickBase.getBoundingClientRect();
+        joystickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        updateJoystickPosition(touch.clientX, touch.clientY);
+        if (e.cancelable) e.preventDefault();
+      }, { passive: false });
+
+      window.addEventListener('touchmove', (e) => {
+        if (joystickTouchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joystickTouchId) {
+            updateJoystickPosition(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+            if (e.cancelable) e.preventDefault();
+            break;
+          }
+        }
+      }, { passive: false });
+
+      const clearJoy = (e) => {
+        if (joystickTouchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joystickTouchId) {
+            resetJoystick();
+            break;
+          }
+        }
+      };
+      window.addEventListener('touchend', clearJoy);
+      window.addEventListener('touchcancel', clearJoy);
+    }
+
+    function setupActionButton(btnId, callback) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+
+      const onPress = (e) => {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        AudioEngine.init();
+        btn.classList.add('active-touch');
+        callback();
+      };
+      const onRelease = (e) => {
+        if (e.cancelable) e.preventDefault();
+        btn.classList.remove('active-touch');
+      };
+
+      btn.addEventListener('touchstart', onPress, { passive: false });
+      btn.addEventListener('touchend', onRelease, { passive: false });
+      btn.addEventListener('touchcancel', onRelease, { passive: false });
+      btn.addEventListener('mousedown', onPress);
+      btn.addEventListener('mouseup', onRelease);
+    }
+
+    setupActionButton('btnJump', triggerJump);
+    setupActionButton('btnInteract', checkPortalInteraction);
+
+    document.getElementById('interaction-hint').addEventListener('click', checkPortalInteraction);
+    document.getElementById('interaction-hint').addEventListener('touchstart', (e) => {
+      if (e.cancelable) e.preventDefault();
+      checkPortalInteraction();
+    }, { passive: false });
+
+    function triggerJump() {
+      if (gameState.isQuizActive) return;
+      if (player.isGrounded || player.coyoteTimer > 0) {
+        player.vel.y = player.jumpPower;
+        player.isGrounded = false;
+        player.coyoteTimer = 0;
+        player.jumpsRemaining = 1;
+        AudioEngine.jump();
+      } else if (player.jumpsRemaining > 0) {
+        player.vel.y = player.jumpPower * 0.94;
+        player.jumpsRemaining--;
+        AudioEngine.doubleJump();
+      }
+    }
+
+    /* LEVEL BUILDER */
+    function clearLevel() {
+      platforms.forEach(p => scene.remove(p.mesh));
+      coins.forEach(c => scene.remove(c.mesh));
+      quizPortals.forEach(q => scene.remove(q.mesh));
+      if (finishGate) scene.remove(finishGate.group);
+      platforms = []; coins = []; quizPortals = []; finishGate = null; gateBarrier = null;
+    }
+
+    function createPlatform(x, y, z, w, h, d, color) {
+      const geo = new THREE.BoxGeometry(w, h, d);
+      const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color }));
+      mesh.position.set(x, y, z);
+      mesh.receiveShadow = true;
+      mesh.castShadow = true;
+      scene.add(mesh);
+      platforms.push({ mesh, x, y, z, w, h, d });
+    }
+
+    function createCoin(x, y, z) {
+      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.1, 16), new THREE.MeshLambertMaterial({ color: 0xffd700 }));
+      mesh.position.set(x, y, z);
+      mesh.rotation.x = Math.PI / 2;
+      scene.add(mesh);
+      coins.push({ mesh, x, y, z, collected: false });
+    }
+
+    function createQuizPortal(x, y, z, qIdx) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+      const aura = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 2.7), new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.65, side: THREE.DoubleSide }));
+      aura.position.set(0, 1.45, 0);
+      group.add(aura);
+      scene.add(group);
+      quizPortals.push({ mesh: group, x, y, z, aura, qIndex: qIdx, solved: false });
+    }
+
+    function createFinishGate(x, y, z) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+      gateBarrier = new THREE.Mesh(new THREE.BoxGeometry(3.1, 3.8, 0.2), new THREE.MeshLambertMaterial({ color: 0xef4444, transparent: true, opacity: 0.7 }));
+      gateBarrier.position.set(0, 1.9, 0);
+      group.add(gateBarrier);
+      scene.add(group);
+      finishGate = { group, x, y, z, barrier: gateBarrier };
+    }
+
+    function buildWorldForQuestion(idx) {
+      clearLevel();
+      currentQuestionIdx = idx;
+      gameState.gateUnlocked = false;
+
+      document.getElementById('hudLevel').innerText = idx + 1;
+
+      createPlatform(0, 0, 0, 7, 1, 7, 0x4caf50);
+
+      let curZ = -6, curY = 0;
+      for (let i = 0; i < 4; i++) {
+        curZ -= 5.5; curY += 0.35;
+        createPlatform(0, curY, curZ, 4.5, 0.8, 4.0, 0x4caf50);
+        createCoin(0, curY + 1.2, curZ);
+      }
+
+      curZ -= 6.5;
+      createPlatform(0, curY, curZ, 7, 1, 7, 0xffb300);
+      createQuizPortal(0, curY + 0.5, curZ, idx);
+
+      for (let i = 0; i < 3; i++) {
+        curZ -= 5.5; curY += 0.3;
+        createPlatform(0, curY, curZ, 4.5, 0.8, 4.0, 0x4caf50);
+        createCoin(0, curY + 1.2, curZ);
+      }
+
+      curZ -= 7;
+      createPlatform(0, curY, curZ, 8, 1, 8, 0x10b981);
+      createFinishGate(0, curY + 0.5, curZ);
+
+      gameState.checkpoint = { x: 0, y: 1.5, z: 0 };
+      respawnPlayer();
+    }
+
+    function respawnPlayer() {
+      player.pos.set(gameState.checkpoint.x, gameState.checkpoint.y, gameState.checkpoint.z);
+      player.vel.set(0, 0, 0);
+      player.isGrounded = true;
+      player.jumpsRemaining = 2;
+    }
+
+    /* PHYSICS & RENDER LOOP */
+    let lastTime = performance.now();
+
+    function updatePhysics(dt) {
+      if (gameState.isQuizActive || gameState.isPaused) return;
+
+      let mx = joystickVector.x;
+      let mz = joystickVector.y;
+      if (keys.w) mz -= 1;
+      if (keys.s) mz += 1;
+      if (keys.a) mx -= 1;
+      if (keys.d) mx += 1;
+
+      const inputLen = Math.hypot(mx, mz);
+      let worldMoveX = 0, worldMoveZ = 0;
+
+      if (inputLen > 0.08) {
+        worldMoveX = mx / Math.max(1, inputLen);
+        worldMoveZ = mz / Math.max(1, inputLen);
+
+        const targetRot = Math.atan2(worldMoveX, worldMoveZ) + Math.PI;
+        playerGroup.rotation.y += (targetRot - playerGroup.rotation.y) * 0.25;
+
+        const t = performance.now() * 0.012;
+        legL.rotation.x = Math.sin(t) * 0.5;
+        legR.rotation.x = -Math.sin(t) * 0.5;
+      } else {
+        legL.rotation.x = 0; legR.rotation.x = 0;
+      }
+
+      player.vel.x = worldMoveX * player.speed;
+      player.vel.z = worldMoveZ * player.speed;
+      player.vel.y += player.gravity * dt;
+
+      if (!player.isGrounded) player.coyoteTimer -= dt;
+      else player.coyoteTimer = player.maxCoyote;
+
+      player.pos.x += player.vel.x * dt;
+      player.pos.z += player.vel.z * dt;
+      player.pos.y += player.vel.y * dt;
+
+      player.isGrounded = false;
+      const footY = player.pos.y - 0.1;
+      const forgiveEdge = 0.32;
+
+      for (const p of platforms) {
+        const minX = p.x - p.w / 2 - forgiveEdge;
+        const maxX = p.x + p.w / 2 + forgiveEdge;
+        const minZ = p.z - p.d / 2 - forgiveEdge;
+        const maxZ = p.z + p.d / 2 + forgiveEdge;
+        const topY = p.y + p.h / 2;
+
+        if (player.pos.x >= minX && player.pos.x <= maxX &&
+            player.pos.z >= minZ && player.pos.z <= maxZ) {
+          if (player.pos.y >= topY - 0.35 && footY <= topY + 0.35 && player.vel.y <= 0) {
+            player.pos.y = topY;
+            player.vel.y = 0;
+            player.isGrounded = true;
+            player.jumpsRemaining = 2;
+            break;
+          }
+        }
+      }
+
+      if (!gameState.gateUnlocked && finishGate) {
+        if (Math.hypot(player.pos.x - finishGate.x, player.pos.z - finishGate.z) < 2.0) {
+          player.pos.z = finishGate.z + 2.1;
+        }
+      }
+
+      if (player.pos.y < -12) {
+        gameState.lives--;
+        updateHud();
+        AudioEngine.wrong();
+        if (gameState.lives <= 0) showGameOver();
+        else respawnPlayer();
+      }
+
+      playerGroup.position.copy(player.pos);
+
+      camera.position.set(player.pos.x, player.pos.y + 3.8, player.pos.z + 8.5);
+      camera.lookAt(player.pos.x, player.pos.y + 1.2, player.pos.z);
+
+      coins.forEach(c => {
+        if (!c.collected) {
+          c.mesh.rotation.z += 0.04;
+          if (player.pos.distanceTo(c.mesh.position) < 1.1) {
+            c.collected = true;
+            scene.remove(c.mesh);
+            gameState.coins += 1;
+            AudioEngine.coin();
+          }
+        }
+      });
+
+      let nearPortal = false;
+      quizPortals.forEach(qp => {
+        if (!qp.solved && player.pos.distanceTo(qp.mesh.position) < 3.2) {
+          nearPortal = true;
+        }
+      });
+      document.getElementById('interaction-hint').style.display = nearPortal ? 'block' : 'none';
+      const btnInteractEl = document.getElementById('btnInteract');
+      if (btnInteractEl) {
+        if (nearPortal) btnInteractEl.classList.add('btn-portal-active');
+        else btnInteractEl.classList.remove('btn-portal-active');
+      }
+
+      if (finishGate && gameState.gateUnlocked && player.pos.distanceTo(finishGate.group.position) < 2.4) {
+        advanceNextQuestion();
+      }
+
+      if (platforms.length > 0) {
+        const prog = ((currentQuestionIdx + (gameState.gateUnlocked ? 1 : 0.5)) / 20) * 100;
+        document.getElementById('hudProgress').style.width = `${Math.min(100, prog)}%`;
+      }
+    }
+
+    /* KUIS ENGINE */
+    let currentQuizItem = null;
+
+    function checkPortalInteraction() {
+      for (const qp of quizPortals) {
+        if (!qp.solved && player.pos.distanceTo(qp.mesh.position) < 3.5) {
+          openQuiz(qp);
+          return;
+        }
+      }
+    }
+
+    function openQuiz(portal) {
+      gameState.isQuizActive = true;
+      setMobileControlsVisible(false);
+      currentQuizItem = SMP_STS_QUESTIONS[portal.qIndex];
+
+      document.getElementById('modalQNum').innerText = portal.qIndex + 1;
+      document.getElementById('quizTopicTitle').innerText = `${currentQuizItem.module}`;
+      document.getElementById('quizQuestionText').innerText = currentQuizItem.q;
+
+      const optsContainer = document.getElementById('quizOptionsContainer');
+      optsContainer.innerHTML = '';
+
+      currentQuizItem.options.forEach((opt, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'quiz-option';
+        btn.innerText = `${String.fromCharCode(65 + idx)}. ${opt}`;
+        btn.onclick = () => selectQuizAnswer(idx, btn, portal);
+        optsContainer.appendChild(btn);
+      });
+
+      document.getElementById('quizFeedback').style.display = 'none';
+      document.getElementById('btnContinueGame').style.display = 'none';
+      document.getElementById('quizModal').style.display = 'flex';
+    }
+
+    function selectQuizAnswer(idx, element, portal) {
+      const feedback = document.getElementById('quizFeedback');
+      const allOptions = document.querySelectorAll('.quiz-option');
+      allOptions.forEach(o => o.style.pointerEvents = 'none');
+
+      if (idx === currentQuizItem.correct) {
+        element.classList.add('correct');
+        feedback.className = 'quiz-feedback feedback-correct';
+        feedback.innerHTML = `<strong>JAWABAN BENAR! (+5 POIN) 🎉</strong><br>${currentQuizItem.explanation}`;
+        AudioEngine.correct();
+
+        gameState.score += 5; // 20 soal x 5 = 100
+        gameState.correctCount += 1;
+        portal.solved = true;
+        portal.aura.material.color.setHex(0x10b981);
+        gameState.gateUnlocked = true;
+
+        if (finishGate && finishGate.barrier) {
+          finishGate.barrier.material.color.setHex(0x10b981);
+          finishGate.barrier.material.opacity = 0.2;
+        }
+        updateHud();
+      } else {
+        element.classList.add('wrong');
+        allOptions[currentQuizItem.correct].classList.add('correct');
+        feedback.className = 'quiz-feedback feedback-wrong';
+        feedback.innerHTML = `<strong>KURANG TEPAT! (0 POIN) 💡</strong><br>${currentQuizItem.explanation}`;
+        AudioEngine.wrong();
+        portal.solved = true;
+        gameState.gateUnlocked = true;
+        if (finishGate && finishGate.barrier) {
+          finishGate.barrier.material.color.setHex(0x10b981);
+          finishGate.barrier.material.opacity = 0.2;
+        }
+        updateHud();
+      }
+
+      feedback.style.display = 'block';
+      const btnCont = document.getElementById('btnContinueGame');
+      btnCont.style.display = 'inline-block';
+      btnCont.onclick = () => {
+        document.getElementById('quizModal').style.display = 'none';
+        gameState.isQuizActive = false;
+        setMobileControlsVisible(true);
+      };
+    }
+
+    function advanceNextQuestion() {
+      if (currentQuestionIdx < 19) {
+        buildWorldForQuestion(currentQuestionIdx + 1);
+        showToast(`Melangkah ke Soal ${currentQuestionIdx + 1}/20!`);
+      } else {
+        showFinalWinScreen();
+      }
+    }
+
+    /* HUD & SCREEN MODALS */
+    function updateHud() {
+      document.getElementById('hudScore').innerText = gameState.score;
+      document.getElementById('hudLives').innerText = gameState.lives;
+      document.getElementById('hudStudentName').innerText = studentData.name || 'Siswa SMP';
+      document.getElementById('hudStudentClass').innerText = `(${studentData.className || 'SMP VII A'})`;
+
+      document.getElementById('menuDisplayStudent').innerText = studentData.name || 'Belum diisi';
+      document.getElementById('menuDisplayClass').innerText = studentData.className || 'SMP VII A';
+    }
+
+    function showFinalWinScreen() {
+      gameState.isQuizActive = true;
+      setMobileControlsVisible(false);
+      document.getElementById('winStudentName').innerText = studentData.name;
+      document.getElementById('winStudentClass').innerText = studentData.className;
+      document.getElementById('winCorrectCount').innerText = gameState.correctCount;
+      document.getElementById('winScore').innerText = gameState.score;
+      document.getElementById('winTime').innerText = `${totalElapsedTime}s`;
+      document.getElementById('winModal').style.display = 'flex';
+      sendDataToSpreadsheet(`Selesai STS SMP (Skor: ${gameState.score}/100)`);
+    }
+
+    function showGameOver() {
+      gameState.isQuizActive = true;
+      setMobileControlsVisible(false);
+      document.getElementById('gameOverModal').style.display = 'flex';
+    }
+
+    /* MENU NAVIGATION */
+    const mainMenuModal = document.getElementById('mainMenuModal');
+    const pauseMenuModal = document.getElementById('pauseMenuModal');
+    const studentModal = document.getElementById('studentModal');
+    const leaderboardModal = document.getElementById('leaderboardModal');
+    const rulesModal = document.getElementById('rulesModal');
+
+    document.getElementById('btnStartGame').addEventListener('click', () => {
+      if (!studentData.name) {
+        studentModal.style.display = 'flex';
+        setMobileControlsVisible(false);
+        return;
+      }
+      mainMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+      startTimer();
+    });
+
+    document.getElementById('btnMenuRules').addEventListener('click', () => {
+      rulesModal.style.display = 'flex';
+    });
+    document.getElementById('btnOpenRules').addEventListener('click', () => {
+      rulesModal.style.display = 'flex';
+    });
+    document.getElementById('btnPauseRules').addEventListener('click', () => {
+      rulesModal.style.display = 'flex';
+    });
+    document.getElementById('btnCloseRules').addEventListener('click', () => {
+      rulesModal.style.display = 'none';
+    });
+
+    document.getElementById('btnMenuLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'flex';
+      fetchAllLeaderboard();
+    });
+
+    document.getElementById('btnChangeStudent').addEventListener('click', () => {
+      document.getElementById('inputStudentName').value = studentData.name;
+      document.getElementById('inputStudentClass').value = studentData.className;
+      document.getElementById('inputStudentAbsen').value = studentData.absen;
+      studentModal.style.display = 'flex';
+      setMobileControlsVisible(false);
+    });
+
+    document.getElementById('btnSaveStudent').addEventListener('click', () => {
+      const name = document.getElementById('inputStudentName').value.trim();
+      const cls = document.getElementById('inputStudentClass').value;
+      const abs = document.getElementById('inputStudentAbsen').value.trim();
+      if (!name) return alert("Mohon masukkan nama siswa!");
+
+      studentData.name = name;
+      studentData.className = cls;
+      studentData.absen = abs;
+      localStorage.setItem('scratch_student_name', studentData.name);
+      localStorage.setItem('scratch_student_class', studentData.className);
+      localStorage.setItem('scratch_student_absen', studentData.absen);
+
+      studentModal.style.display = 'none';
+      mainMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+      updateHud();
+      startTimer();
+      sendDataToSpreadsheet("Login STS SMP");
+      showToast(`Selamat datang, ${studentData.name}!`);
+    });
+
+    document.getElementById('btnCancelStudent').addEventListener('click', () => {
+      studentModal.style.display = 'none';
+      if (!gameState.isPaused && studentData.name) {
+        setMobileControlsVisible(true);
+      }
+    });
+
+    document.getElementById('btnOpenInGameMenu').addEventListener('click', () => {
+      gameState.isPaused = true;
+      setMobileControlsVisible(false);
+      pauseMenuModal.style.display = 'flex';
+    });
+
+    document.getElementById('btnResumeGame').addEventListener('click', () => {
+      pauseMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+    });
+
+    document.getElementById('btnPauseLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'flex';
+      fetchAllLeaderboard();
+    });
+
+    document.getElementById('btnReturnToMainMenu').addEventListener('click', () => {
+      pauseMenuModal.style.display = 'none';
+      mainMenuModal.style.display = 'flex';
+      gameState.isPaused = true;
+      setMobileControlsVisible(false);
+    });
+
+    document.getElementById('btnCloseLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'none';
+      if (!gameState.isPaused && !gameState.isQuizActive && studentData.name && mainMenuModal.style.display === 'none') {
+        setMobileControlsVisible(true);
+      }
+    });
+
+    document.getElementById('btnWinLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'flex';
+      fetchAllLeaderboard();
+    });
+
+    document.getElementById('btnPlayAgain').addEventListener('click', () => {
+      document.getElementById('winModal').style.display = 'none';
+      gameState.score = 0;
+      gameState.correctCount = 0;
+      gameState.lives = 3;
+      gameState.isQuizActive = false;
+      totalElapsedTime = 0;
+      setMobileControlsVisible(true);
+      updateHud();
+      buildWorldForQuestion(0);
+      startTimer();
+    });
+
+    document.getElementById('btnRestartLevel').addEventListener('click', () => {
+      document.getElementById('gameOverModal').style.display = 'none';
+      gameState.lives = 3;
+      gameState.isQuizActive = false;
+      setMobileControlsVisible(true);
+      updateHud();
+      respawnPlayer();
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    /* ANIMATION LOOP */
+    function animate(currentTime) {
+      requestAnimationFrame(animate);
+      const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
+      lastTime = currentTime;
+
+      updatePhysics(dt);
+      renderer.render(scene, camera);
+    }
+
+    buildWorldForQuestion(0);
+    updateHud();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
