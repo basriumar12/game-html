@@ -41,7 +41,7 @@
       overflow: hidden;
       background: var(--bg-dark);
       font-family: 'Plus Jakarta Sans', sans-serif;
-      touch-action: none;
+      touch-action: auto;
       color: var(--text-main);
     }
 
@@ -355,6 +355,14 @@
       .action-touch-btn .btn-label { font-size: 9px; }
     }
 
+    input, textarea, select, button, .form-input, .btn {
+      user-select: auto !important;
+      -webkit-user-select: auto !important;
+      -webkit-touch-callout: default !important;
+      touch-action: manipulation !important;
+      pointer-events: auto !important;
+    }
+
     /* MODAL OVERLAYS & CARDS */
     .modal-overlay {
       position: fixed;
@@ -369,6 +377,8 @@
       justify-content: center;
       align-items: center;
       padding: 16px;
+      pointer-events: auto !important;
+      touch-action: auto !important;
     }
     .modal-card {
       background: #111827;
@@ -2376,6 +2386,30 @@ umur = <span class="fn">int</span>(<span class="fn">input</span>(<span class="st
     buildWorldForQuestion(0);
     updateHud();
     requestAnimationFrame(animate);
+
+    // Buka form nama otomatis jika nama siswa belum diisi
+    if (!studentData.name) {
+      setTimeout(() => {
+        studentModal.style.display = 'flex';
+        setMobileControlsVisible(false);
+      }, 250);
+    }
+
+    const studentInfoBox = document.getElementById('menuDisplayStudent');
+    if (studentInfoBox) {
+      const boxParent = studentInfoBox.closest('div');
+      if (boxParent) {
+        boxParent.style.cursor = 'pointer';
+        boxParent.title = 'Klik untuk mengisi/mengganti identitas siswa';
+        boxParent.addEventListener('click', () => {
+          document.getElementById('inputStudentName').value = studentData.name || '';
+          document.getElementById('inputStudentClass').value = studentData.className || 'SMA X A';
+          document.getElementById('inputStudentAbsen').value = studentData.absen || '';
+          studentModal.style.display = 'flex';
+          setMobileControlsVisible(false);
+        });
+      }
+    }
   </script>
 </body>
 </html>

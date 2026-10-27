@@ -20,7 +20,7 @@
       overflow: hidden;
       background: #0f172a;
       font-family: 'Nunito', sans-serif;
-      touch-action: none;
+      touch-action: auto;
     }
     #canvas-container {
       position: fixed;
@@ -140,10 +140,12 @@
       text-align: center;
     }
 
-    input, textarea, select {
-      user-select: text !important;
-      -webkit-user-select: text !important;
+    input, textarea, select, button, .form-input, .btn {
+      user-select: auto !important;
+      -webkit-user-select: auto !important;
+      -webkit-touch-callout: default !important;
       touch-action: manipulation !important;
+      pointer-events: auto !important;
     }
 
     /* KONTROL SENTUH HP */
@@ -291,6 +293,8 @@
       justify-content: center;
       align-items: center;
       padding: 14px;
+      pointer-events: auto !important;
+      touch-action: auto !important;
     }
     .modal-card {
       position: relative;
@@ -614,6 +618,9 @@
       <button class="btn btn-green" id="btnRestartLevel">Lanjutkan dari Checkpoint 🔄</button>
     </div>
   </div>
+
+  <!-- DEPENDENCY: THREE.JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <script>
     const SPREADSHEET_URL = "https://script.google.com/macros/s/AKfycbzrmavzVn7tX680Jrn6z_M-47x-1X2ouQLy3_qWNaEhet6mIO50vRn-3gzVjz7G_R3E/exec";
@@ -1808,6 +1815,30 @@
     buildWorldForQuestion(0);
     updateHud();
     requestAnimationFrame(animate);
+
+    // Buka form nama otomatis jika nama siswa belum diisi
+    if (!studentData.name) {
+      setTimeout(() => {
+        studentModal.style.display = 'flex';
+        setMobileControlsVisible(false);
+      }, 250);
+    }
+
+    const studentInfoBox = document.getElementById('menuDisplayStudent');
+    if (studentInfoBox) {
+      const boxParent = studentInfoBox.closest('div');
+      if (boxParent) {
+        boxParent.style.cursor = 'pointer';
+        boxParent.title = 'Klik untuk mengisi/mengganti identitas siswa';
+        boxParent.addEventListener('click', () => {
+          document.getElementById('inputStudentName').value = studentData.name || '';
+          document.getElementById('inputStudentClass').value = studentData.className || 'SMP VII A';
+          document.getElementById('inputStudentAbsen').value = studentData.absen || '';
+          studentModal.style.display = 'flex';
+          setMobileControlsVisible(false);
+        });
+      }
+    }
   </script>
 </body>
 </html>
