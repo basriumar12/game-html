@@ -15,7 +15,7 @@ Permainan ini dirancang dapat dimainkan oleh **puluhan hingga ratusan siswa seka
    - **Pilih Avatar**: Petani Caping, Pelajar Hijab, atau Peneliti Hijau.
 3. Klik **"MASUK & MULAI PERMAINAN"**.
 4. Data siswa langsung tersimpan ke Google Sheets sheet `"Peserta"` dan disiarkan secara real-time.
-5. Siswa mengocok dadu 3D, melangkah di petak board game kawasan Gedung BPMP Gorontalo, dan menjawab 20 soal kuis pilihan ganda.
+5. Siswa mengocok dadu 3D, melangkah di petak board game kawasan Gedung BPMP Gorontalo, dan menjawab 30 soal kuis pilihan ganda Arduino & Wokwi dalam batas waktu 60 menit.
 6. Setiap langkah petak dan jawaban soal secara otomatis disinkronkan ke Google Sheets dan terlihat di layar monitor guru.
 
 ---

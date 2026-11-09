@@ -236,7 +236,7 @@ class GASService {
       p.correct = correct;
       p.wrong = wrong;
       p.currentTile = tile;
-      p.status = (correct + wrong >= 20) ? "FINISHED" : "PLAYING";
+      p.status = (correct + wrong >= 30) ? "FINISHED" : "PLAYING";
       p.lastPing = new Date().toLocaleTimeString("id-ID");
     } else {
       players.push({

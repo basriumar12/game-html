@@ -36,14 +36,14 @@ class BPMPFarmGame {
     this.maxEnergy = 100;
     this.correctCount = 0;
     this.wrongCount = 0;
-    this.totalQuestions = 20;
+    this.totalQuestions = 30;
     this.answeredQuestions = [];
     this.currentTileIndex = 0;
     this.tilesVisited = 1;
 
-    // Timer (30 minutes = 1800 seconds)
-    this.totalTimeSeconds = 1800;
-    this.remainingSeconds = 1800;
+    // Timer (60 minutes = 3600 seconds)
+    this.totalTimeSeconds = 3600;
+    this.remainingSeconds = 3600;
     this.elapsedSeconds = 0;
     this.timerInterval = null;
     this.isGameOver = false;
@@ -1352,11 +1352,11 @@ class BPMPFarmGame {
     this.updateHUD();
     this.syncScoreToGAS();
 
-    // Check if 20 questions completed
+    // Check if 30 questions completed
     if (this.correctCount + this.wrongCount >= this.totalQuestions) {
       setTimeout(() => {
         this.closeQuizModal();
-        this.triggerGameFinish("Selamat! Anda telah menyelesaikan 20 Soal Tantangan BPMP Farm Quest!");
+        this.triggerGameFinish("Selamat! Anda telah menyelesaikan 30 Soal Tantangan Arduino & Wokwi!");
       }, 3500);
     }
   }
@@ -1367,7 +1367,7 @@ class BPMPFarmGame {
   }
 
   /**
-   * 8. 30-Minute Global Timer Engine
+   * 8. 60-Minute Global Timer Engine
    */
   startTimer() {
     if (this.timerInterval) clearInterval(this.timerInterval);
@@ -1389,7 +1389,7 @@ class BPMPFarmGame {
       // Check Time Expired
       if (this.remainingSeconds <= 0) {
         clearInterval(this.timerInterval);
-        this.triggerGameFinish("Waktu Permainan 30 Menit Telah Habis!");
+        this.triggerGameFinish("Waktu Permainan 60 Menit Telah Habis!");
       }
     }, 1000);
   }

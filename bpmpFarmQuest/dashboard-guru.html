@@ -478,7 +478,7 @@
         <div class="leader-metric-lbl">Total Skor Panen</div>
       </div>
       <div>
-        <div id="leader-correct" class="leader-metric-val" style="color: var(--bpmp-green);">0 / 20</div>
+        <div id="leader-correct" class="leader-metric-val" style="color: var(--bpmp-green);">0 / 30</div>
         <div class="leader-metric-lbl">Soal Dijawab Benar</div>
       </div>
       <div>
@@ -523,7 +523,7 @@
         <span class="metric-icon">🎯</span>
       </div>
       <div id="metric-avg-correct" class="metric-value" style="color: var(--bpmp-green);">0</div>
-      <div class="metric-footer">Dari 20 soal Penjaminan Mutu BPMP</div>
+      <div class="metric-footer">Dari 30 soal Arduino & Wokwi</div>
     </div>
 
     <!-- Card 4: Siswa Sedang Aktif -->
@@ -685,7 +685,7 @@
         document.getElementById("leader-name").textContent = `🥇 ${leader.name}`;
         document.getElementById("leader-institution").textContent = `Instansi: ${leader.institution} · NIM/ID: ${leader.nim}`;
         document.getElementById("leader-score").textContent = leader.score;
-        document.getElementById("leader-correct").textContent = `${leader.correct} / 20`;
+        document.getElementById("leader-correct").textContent = `${leader.correct} / 30`;
         const acc = (leader.correct + leader.wrong > 0) 
           ? Math.round((leader.correct / (leader.correct + leader.wrong)) * 100) 
           : 0;
@@ -695,7 +695,7 @@
         document.getElementById("leader-name").textContent = "Menunggu Siswa Masuk...";
         document.getElementById("leader-institution").textContent = "Belum ada pemain aktif di room ini";
         document.getElementById("leader-score").textContent = "0";
-        document.getElementById("leader-correct").textContent = "0 / 20";
+        document.getElementById("leader-correct").textContent = "0 / 30";
         document.getElementById("leader-accuracy").textContent = "0%";
       }
 
