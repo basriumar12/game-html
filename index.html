@@ -70,6 +70,9 @@
     }
     .badge-sma { background: rgba(6, 182, 212, 0.15); color: #38bdf8; border: 1px solid #06b6d4; }
     .badge-smp { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid #f59e0b; }
+    .badge-paud { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid #10b981; }
+    .badge-ice { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid #a855f7; }
+    .badge-bpmp { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid #f59e0b; }
     .title {
       font-family: 'Orbitron', sans-serif;
       font-size: 1.25rem;
@@ -89,6 +92,7 @@
     }
     .topics li { margin-bottom: 5px; }
     .topics li::before { content: "⚡ "; color: #38bdf8; }
+    .topics-paud li::before { content: "✨ "; color: #34d399; }
     .btn {
       display: block;
       width: 100%;
@@ -114,6 +118,25 @@
       box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
     }
     .btn-smp:hover { filter: brightness(1.15); }
+    .btn-paud {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: white;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+    }
+    .btn-paud:hover { filter: brightness(1.15); }
+    .btn-ice {
+      background: linear-gradient(135deg, #7c3aed, #06b6d4);
+      color: white;
+      box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+    }
+    .btn-ice:hover { filter: brightness(1.15); }
+    .btn-bpmp {
+      background: linear-gradient(135deg, #f59e0b, #10b981);
+      color: #0f172a;
+      font-weight: 800;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+    }
+    .btn-bpmp:hover { filter: brightness(1.15); }
   </style>
 </head>
 <body>
@@ -121,6 +144,27 @@
   <p class="sub">Pilih petualangan interaktif koding dan kriptografi sesuai jenjang pendidikan:</p>
 
   <div class="grid">
+    <!-- KARTU BPMP FARM QUEST: GORONTALO EDITION -->
+    <div class="card" style="border-color: #f59e0b; grid-column: 1 / -1; background: linear-gradient(180deg, #18221c 0%, #0d1712 100%);">
+      <div>
+        <div class="badge badge-bpmp">🔥 SPESIAL · MULTIPLAYER BOARD GAME 3D · GOOGLE SHEETS REAL-TIME</div>
+        <h2 class="title" style="color: #facc15; font-size: 1.5rem;">BPMP Farm Quest: Gorontalo Edition</h2>
+        <p class="desc">Board game edukatif 3D bergaya Harvest Moon / Stardew Valley berlatar lingkungan Gedung BPMP Provinsi Gorontalo ramah lingkungan. Dadu digital 3D, 20 soal kuis pilihan ganda, timer 30 menit, dan sinkronisasi real-time ke Google Sheets!</p>
+        <ul class="topics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px;">
+          <li>3D Gedung Utama BPMP Gorontalo & Landmark Pilar Berundak</li>
+          <li>Eco-Farm: Kebun Jagung Gorontalo, Sapi, Biogas, Kincir & Danau Limboto</li>
+          <li>Papan Board Game 24 Petak Interaktif dengan Dadu 3D Berputar</li>
+          <li>20 Soal Pilihan Ganda (Mutu Pendidikan, Merdeka Belajar, Kearifan Lokal)</li>
+          <li>Countdown Timer 30 Menit & Harvest Moon Stamina Energy Bar</li>
+          <li>Integrasi Real-Time Google Apps Script & Database Google Sheets</li>
+        </ul>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px;">
+        <a href="bpmpFarmQuest/index.html" class="btn btn-bpmp" style="flex: 1; font-size: 1.05rem; min-width: 240px;">MAINKAN GAME (SISWA) ➔</a>
+        <a href="bpmpFarmQuest/dashboard-guru.html" target="_blank" class="btn" style="flex: 1; min-width: 240px; background: #1e293b; border: 2px solid #f59e0b; color: #fde68a; font-weight: 800;">👨‍🏫 DASHBOARD GURU (LIVE MONITORING) ➔</a>
+      </div>
+    </div>
+
     <!-- KARTU SMA -->
     <div class="card" style="border-color: #06b6d4;">
       <div>
@@ -156,6 +200,42 @@
         </ul>
       </div>
       <a href="sntSMPgame/index.html" class="btn btn-smp">MAINKAN GAME SMP ➔</a>
+    </div>
+
+    <!-- KARTU DUNIA ES: ICE REALM ADVENTURE -->
+    <div class="card" style="border-color: #38bdf8;">
+      <div>
+        <div class="badge badge-ice">Adventure Platformer · Laptop & HP</div>
+        <h2 class="title" style="color: #38bdf8;">Ice Realm Adventure</h2>
+        <p class="desc">Petualangan Rubah Oranye di Dunia Es: Hadapi Stone Golem, Ice Elemental, pecahkan kuis checkpoint rune es, kumpulkan Kristal Ungu, dan kalahkan Ice Guardian!</p>
+        <ul class="topics">
+          <li>Karakter: Rubah Oranye (Fox Hero), Stone Golem, Ice Elemental</li>
+          <li>Pertarungan Bos: Ice Guardian dengan gelombang es & amukan tanduk</li>
+          <li>Kontrol Fleksibel: Keyboard Laptop & Virtual Touchscreen HP</li>
+          <li>Kuis Checkpoint: Sains Kristal Es, Termodinamika & Logika Game</li>
+          <li>Mekanik: Double Jump, Tembakan Bola Api, Platform Es Licin</li>
+          <li>Koleksi: 15 Kristal Ungu & Sistem Skor Tertinggi</li>
+        </ul>
+      </div>
+      <a href="iceRealm/index.html" class="btn btn-ice">MAINKAN ICE REALM ➔</a>
+    </div>
+
+    <!-- KARTU PAUD / USIA DINI (3-5 TAHUN) -->
+    <div class="card" style="border-color: #10b981;">
+      <div>
+        <div class="badge badge-paud">PAUD / TK · Usia 3,5–4,5 Tahun</div>
+        <h2 class="title" style="color: #34d399;">Petualangan Si Kecil</h2>
+        <p class="desc">Dunia Alfabet & Hijaiyah: Petualangan menyusuri hutan, jembatan, gua & istana. Karakter wajib menjawab benar untuk membuka gerbang!</p>
+        <ul class="topics topics-paud">
+          <li>Voice-First (Semua Instruksi Suara)</li>
+          <li>Wajib Jawab Benar untuk Lanjut Jalan</li>
+          <li>Karakter Berhenti di Depan Gerbang Kunci</li>
+          <li>10 Level: Hutan, Jembatan, Gua & Istana</li>
+          <li>Alfabet A–Z & 28 Huruf Hijaiyah Baku</li>
+          <li>Desain Mobile-First Layar Portrait HP</li>
+        </ul>
+      </div>
+      <a href="petualanganPintar3D/index.html" class="btn btn-paud">MAINKAN GAME PAUD ➔</a>
     </div>
   </div>
 </body>
