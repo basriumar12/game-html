@@ -440,9 +440,9 @@
       </div>
 
       <select id="select-room-id" class="room-selector">
-        <option value="SMA-SNT-X" selected>Room: SMA SNT Kelas X (SMA-SNT-X)</option>
-        <option value="BPMP-01">Room: BPMP-01</option>
-        <option value="ALL">Semua Room</option>
+        <option value="SMA-SNT-XA" selected>Kelas X-A (SMA SNT)</option>
+        <option value="SMA-SNT-XB">Kelas X-B (SMA SNT)</option>
+        <option value="ALL">Semua Kelas X (ALL)</option>
       </select>
 
       <button id="btn-manual-refresh" class="btn-action">
@@ -547,6 +547,9 @@
       <button class="tab-btn" data-tab="tab-attendance">
         📋 Daftar Siswa yang Sudah Masuk (Presensi Masuk)
       </button>
+      <button class="tab-btn" data-tab="tab-questions">
+        ✏️ Kelola Bank Soal (Edit / Ganti Soal Guru)
+      </button>
     </div>
 
     <!-- TAB 1: LIVE LEADERBOARD -->
@@ -556,11 +559,11 @@
           <tr>
             <th style="width: 70px;">Rank</th>
             <th>Nama Siswa</th>
-            <th>NIM / ID</th>
-            <th>Instansi / Sekolah</th>
+            <th>NISN / No. Absen</th>
+            <th>Kelas / Sekolah</th>
             <th>Total Skor</th>
             <th>Jawaban Benar / Salah</th>
-            <th>Posisi Petak</th>
+            <th>Pindah Tab</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -594,13 +597,41 @@
         </tbody>
       </table>
     </div>
+
+    <!-- TAB 3: KELOLA BANK SOAL (GURU) -->
+    <div id="tab-questions" class="tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; background: rgba(15, 23, 42, 0.6); padding: 14px 18px; border-radius: 14px; border: 1px solid var(--card-border);">
+        <div>
+          <h3 style="font-size: 16px; color: #fff; margin-bottom: 4px;">📝 Editor Bank Soal Guru (30 Nomor)</h3>
+          <p style="font-size: 12px; color: var(--text-muted);">Ubah pertanyaan, pilihan jawaban, atau kunci jawaban. Perubahan otomatis disinkronkan ke game siswa.</p>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="btn-load-default-questions" class="header-btn" style="background: rgba(2, 132, 199, 0.2); border-color: #0284c7; color: #38bdf8;">
+            📥 Muat Soal Default
+          </button>
+          <button id="btn-add-new-question" class="header-btn" style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399;">
+            ➕ Tambah Soal
+          </button>
+          <button id="btn-save-questions-to-gas" class="header-btn" style="background: var(--bpmp-gold); color: #0f172a; font-weight: 800;">
+            💾 Simpan Soal ke Server
+          </button>
+        </div>
+      </div>
+
+      <div id="questions-save-status" style="display: none; padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 13px; font-weight: 700;"></div>
+
+      <div id="questions-editor-list" style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Card-card soal akan di-render di sini -->
+      </div>
+    </div>
   </div>
 
   <!-- Scripts -->
+  <script src="js/questions.js"></script>
   <script src="js/gas-service.js"></script>
 
   <script>
-    let currentRoom = "SMA-SNT-X";
+    let currentRoom = "SMA-SNT-XA";
     let refreshTimer = null;
     let latestData = null;
 
@@ -708,6 +739,7 @@
           const rank = idx + 1;
           const rankClass = rank === 1 ? "rank-1" : (rank === 2 ? "rank-2" : (rank === 3 ? "rank-3" : "rank-other"));
           const totalAnswered = (p.correct || 0) + (p.wrong || 0);
+          const answered = (p.currentTile && p.currentTile > 0) ? p.currentTile : totalAnswered;
           const percent = totalAnswered > 0 ? ((p.correct || 0) / totalAnswered) * 100 : 0;
           const statusClass = p.status === "FINISHED" ? "status-finished" : (p.status === "PLAYING" ? "status-playing" : "status-online");
 
@@ -717,8 +749,11 @@
             <td><strong>${p.name}</strong> ${rank === 1 ? '👑' : ''}</td>
             <td><code>${p.nim}</code></td>
             <td>${p.institution}</td>
-            <td><strong style="color: var(--bpmp-gold); font-size: 15px;">${p.score} pts</strong></td>
+            <td><strong style="color: var(--bpmp-gold); font-size: 16px;">${p.score} Poin</strong></td>
             <td>
+              <div style="font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 3px;">
+                ${answered} / 30 Soal Terjawab
+              </div>
               <div class="accuracy-bar-box">
                 <span style="color: var(--bpmp-green); font-weight: 700;">${p.correct}✓</span>
                 <div class="accuracy-bar">
@@ -727,7 +762,7 @@
                 <span style="color: var(--bpmp-red); font-weight: 700;">${p.wrong}✗</span>
               </div>
             </td>
-            <td>Petak #${p.currentTile || 0}</td>
+            <td>${(p.tabSwitches || 0) > 0 ? `<span style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; padding: 2px 8px; border-radius: 8px; font-weight: 800; font-size: 11px;">⚠️ ${p.tabSwitches}x Pindah</span>` : `<span style="color: #10b981; font-weight: 700; font-size: 11px;">0x (Aman)</span>`}</td>
             <td><span class="status-pill ${statusClass}">${p.status || 'ONLINE'}</span></td>
           `;
           tbLeaderboard.appendChild(tr);
@@ -760,6 +795,188 @@
     // Auto-refresh loop every 4 seconds
     fetchDashboardData();
     refreshTimer = setInterval(fetchDashboardData, 4000);
+
+    // ========================================================================
+    // LOGIKA EDITOR BANK SOAL GURU
+    // ========================================================================
+    let teacherQuestions = [];
+
+    async function initQuestionsEditor() {
+      try {
+        const data = await window.gasService.fetchQuestions();
+        if (Array.isArray(data) && data.length > 0) {
+          teacherQuestions = data;
+        } else {
+          teacherQuestions = window.DEFAULT_QUESTIONS ? [...window.DEFAULT_QUESTIONS] : [];
+        }
+      } catch (e) {
+        teacherQuestions = window.DEFAULT_QUESTIONS ? [...window.DEFAULT_QUESTIONS] : [];
+      }
+      renderQuestionsEditor();
+    }
+
+    function renderQuestionsEditor() {
+      const container = document.getElementById("questions-editor-list");
+      if (!container) return;
+      container.innerHTML = "";
+
+      teacherQuestions.forEach((q, idx) => {
+        const card = document.createElement("div");
+        card.style.cssText = "background: rgba(30, 41, 59, 0.7); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;";
+
+        const optA = (q.options && q.options[0]) ? (q.options[0].text || q.options[0]) : "";
+        const optB = (q.options && q.options[1]) ? (q.options[1].text || q.options[1]) : "";
+        const optC = (q.options && q.options[2]) ? (q.options[2].text || q.options[2]) : "";
+        const optD = (q.options && q.options[3]) ? (q.options[3].text || q.options[3]) : "";
+        const currentAns = (q.answer || "A").toString().toUpperCase().trim();
+
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="background: var(--bpmp-gold); color: #0f172a; font-weight: 900; font-size: 12px; padding: 2px 8px; border-radius: 6px;">#${idx + 1}</span>
+              <input type="text" class="q-category-input" value="${q.category || 'Arduino & Wokwi'}" style="background: rgba(15,23,42,0.8); border: 1px solid var(--card-border); color: #38bdf8; font-weight: 700; border-radius: 6px; padding: 4px 8px; font-size: 12px; width: 220px;" placeholder="Kategori Topik">
+            </div>
+            <button class="btn-delete-q" data-idx="${idx}" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; border-radius: 6px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🗑️ Hapus</button>
+          </div>
+
+          <div>
+            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Teks Pertanyaan:</label>
+            <textarea class="q-text-input" style="width: 100%; min-height: 55px; background: rgba(15,23,42,0.8); border: 1px solid var(--card-border); color: #fff; border-radius: 8px; padding: 8px; font-size: 13px; font-family: inherit; resize: vertical;">${q.question || ''}</textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: #94a3b8;">Pilihan A:</label>
+              <input type="text" class="q-opt-a" value="${optA}" style="width: 100%; background: rgba(15,23,42,0.8); border: 1px solid var(--card-border); color: #fff; border-radius: 6px; padding: 6px 8px; font-size: 12px;">
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: #94a3b8;">Pilihan B:</label>
+              <input type="text" class="q-opt-b" value="${optB}" style="width: 100%; background: rgba(15,23,42,0.8); border: 1px solid var(--card-border); color: #fff; border-radius: 6px; padding: 6px 8px; font-size: 12px;">
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: #94a3b8;">Pilihan C:</label>
+              <input type="text" class="q-opt-c" value="${optC}" style="width: 100%; background: rgba(15,23,42,0.8); border: 1px solid var(--card-border); color: #fff; border-radius: 6px; padding: 6px 8px; font-size: 12px;">
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: #94a3b8;">Pilihan D:</label>
+              <input type="text" class="q-opt-d" value="${optD}" style="width: 100%; background: rgba(15,23,42,0.8); border: 1px solid var(--card-border); color: #fff; border-radius: 6px; padding: 6px 8px; font-size: 12px;">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <label style="font-size: 12px; font-weight: 800; color: var(--bpmp-gold);">Kunci Jawaban:</label>
+              <select class="q-key-select" style="background: #0f172a; border: 2px solid var(--bpmp-gold); color: #fff; font-weight: 900; font-size: 13px; border-radius: 6px; padding: 4px 10px;">
+                <option value="A" ${currentAns === 'A' ? 'selected' : ''}>A</option>
+                <option value="B" ${currentAns === 'B' ? 'selected' : ''}>B</option>
+                <option value="C" ${currentAns === 'C' ? 'selected' : ''}>C</option>
+                <option value="D" ${currentAns === 'D' ? 'selected' : ''}>D</option>
+              </select>
+            </div>
+            <div style="flex: 1; min-width: 220px;">
+              <input type="text" class="q-explanation-input" value="${q.explanation || ''}" style="width: 100%; background: rgba(15,23,42,0.8); border: 1px solid var(--card-border); color: #a7f3d0; border-radius: 6px; padding: 5px 8px; font-size: 11px;" placeholder="Pembahasan / Alasan Jawaban">
+            </div>
+          </div>
+        `;
+
+        card.querySelector(".btn-delete-q").addEventListener("click", () => {
+          if (confirm(`Hapus soal nomor #${idx + 1}?`)) {
+            syncDOMToQuestions();
+            teacherQuestions.splice(idx, 1);
+            renderQuestionsEditor();
+          }
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    function syncDOMToQuestions() {
+      const cards = document.querySelectorAll("#questions-editor-list > div");
+      const list = [];
+      cards.forEach((card, idx) => {
+        const cat = card.querySelector(".q-category-input").value;
+        const qText = card.querySelector(".q-text-input").value;
+        const optA = card.querySelector(".q-opt-a").value;
+        const optB = card.querySelector(".q-opt-b").value;
+        const optC = card.querySelector(".q-opt-c").value;
+        const optD = card.querySelector(".q-opt-d").value;
+        const key = card.querySelector(".q-key-select").value;
+        const exp = card.querySelector(".q-explanation-input").value;
+
+        list.push({
+          id: idx + 1,
+          category: cat,
+          question: qText,
+          options: [
+            { key: "A", text: optA },
+            { key: "B", text: optB },
+            { key: "C", text: optC },
+            { key: "D", text: optD }
+          ],
+          answer: key,
+          explanation: exp
+        });
+      });
+      teacherQuestions = list;
+    }
+
+    document.getElementById("btn-add-new-question").addEventListener("click", () => {
+      syncDOMToQuestions();
+      teacherQuestions.push({
+        id: teacherQuestions.length + 1,
+        category: "Topik Baru",
+        question: "Tulis pertanyaan baru di sini...",
+        options: [
+          { key: "A", text: "Pilihan A" },
+          { key: "B", text: "Pilihan B" },
+          { key: "C", text: "Pilihan C" },
+          { key: "D", text: "Pilihan D" }
+        ],
+        answer: "A",
+        explanation: "Pembahasan untuk soal ini."
+      });
+      renderQuestionsEditor();
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    });
+
+    document.getElementById("btn-load-default-questions").addEventListener("click", () => {
+      if (confirm("Reset dan muat 30 soal default Arduino & Wokwi?")) {
+        teacherQuestions = window.DEFAULT_QUESTIONS ? JSON.parse(JSON.stringify(window.DEFAULT_QUESTIONS)) : [];
+        renderQuestionsEditor();
+      }
+    });
+
+    document.getElementById("btn-save-questions-to-gas").addEventListener("click", async () => {
+      syncDOMToQuestions();
+      const statusEl = document.getElementById("questions-save-status");
+      statusEl.style.display = "block";
+      statusEl.style.background = "rgba(2, 132, 199, 0.2)";
+      statusEl.style.border = "1px solid #0284c7";
+      statusEl.style.color = "#38bdf8";
+      statusEl.innerHTML = `⏳ Sedang menyimpan ${teacherQuestions.length} soal ke Google Sheets...`;
+
+      try {
+        await window.gasService.saveQuestions(teacherQuestions);
+        statusEl.style.background = "rgba(16, 185, 129, 0.2)";
+        statusEl.style.border = "1px solid #10b981";
+        statusEl.style.color = "#34d399";
+        statusEl.innerHTML = `✅ Sukses! ${teacherQuestions.length} soal berhasil disimpan ke Google Sheets (Tab "Soal"). Game siswa akan langsung menggunakan soal ini!`;
+        setTimeout(() => { statusEl.style.display = "none"; }, 5000);
+      } catch (err) {
+        statusEl.style.background = "rgba(239, 68, 68, 0.2)";
+        statusEl.style.border = "1px solid #ef4444";
+        statusEl.style.color = "#f87171";
+        statusEl.innerHTML = `❌ Terjadi kendala saat menyimpan: ${err.message}`;
+      }
+    });
+
+    // Inisialisasi Bank Soal saat Tab dibuka
+    document.querySelector('[data-tab="tab-questions"]').addEventListener("click", () => {
+      if (teacherQuestions.length === 0) {
+        initQuestionsEditor();
+      }
+    });
   </script>
 </body>
 </html>
