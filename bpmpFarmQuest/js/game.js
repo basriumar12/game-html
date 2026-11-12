@@ -286,24 +286,24 @@ class BPMPFarmGame {
   }
 
   /**
-   * 30 POSKO SOAL TERSEBAR DI SELURUH KAWASAN BPMP GORONTALO
-   * Siswa berlari berebutan mendatangi posko 1 sampai 30!
+   * 30 - 40 POSKO SOAL TERSEBAR DI SELURUH KAWASAN BPMP GORONTALO
+   * Mendukung mode dinamis sesuai paket: SMP (40 Soal), SMA (30 Soal), Bahasa Inggris
    */
   build30PoskoSoal() {
     this.poskoList = [];
 
-    // Distribusi posisi 30 posko yang menarik dan mudah dijelajahi
+    // Distribusi posisi 40 posko yang menarik dan mudah dijelajahi di kawasan BPMP Gorontalo
     const positions = [
       // Zona Depan BPMP Plaza (Posko 1 - 6)
       { x: -6, z: 2 }, { x: 6, z: 2 }, { x: -12, z: 6 }, { x: 12, z: 6 }, { x: -5, z: 12 }, { x: 5, z: 12 },
-      // Zona Kebun Jagung Barat (Posko 7 - 12)
-      { x: -18, z: -2 }, { x: -24, z: -6 }, { x: -28, z: 4 }, { x: -22, z: 10 }, { x: -18, z: 16 }, { x: -26, z: 18 },
-      // Zona Danau Limboto Selatan (Posko 13 - 18)
-      { x: -10, z: 24 }, { x: -4, z: 32 }, { x: 4, z: 32 }, { x: 10, z: 24 }, { x: 0, z: 36 }, { x: 0, z: 20 },
-      // Zona Kebun & Kincir Timur (Posko 19 - 24)
-      { x: 18, z: -2 }, { x: 24, z: -6 }, { x: 28, z: 4 }, { x: 22, z: 10 }, { x: 18, z: 16 }, { x: 26, z: 18 },
-      // Zona Pelataran Belakang & Samping BPMP (Posko 25 - 30)
-      { x: -16, z: -16 }, { x: 16, z: -16 }, { x: -22, z: -22 }, { x: 22, z: -22 }, { x: -8, z: -30 }, { x: 8, z: -30 }
+      // Zona Kebun Jagung Barat (Posko 7 - 14)
+      { x: -18, z: -2 }, { x: -24, z: -6 }, { x: -28, z: 4 }, { x: -22, z: 10 }, { x: -18, z: 16 }, { x: -26, z: 18 }, { x: -32, z: 10 }, { x: -30, z: -8 },
+      // Zona Danau Limboto Selatan (Posko 15 - 22)
+      { x: -10, z: 24 }, { x: -4, z: 32 }, { x: 4, z: 32 }, { x: 10, z: 24 }, { x: 0, z: 36 }, { x: 0, z: 20 }, { x: -16, z: 28 }, { x: 16, z: 28 },
+      // Zona Kebun & Kincir Timur (Posko 23 - 30)
+      { x: 18, z: -2 }, { x: 24, z: -6 }, { x: 28, z: 4 }, { x: 22, z: 10 }, { x: 18, z: 16 }, { x: 26, z: 18 }, { x: 32, z: 10 }, { x: 30, z: -8 },
+      // Zona Pelataran Belakang & Samping BPMP (Posko 31 - 40)
+      { x: -16, z: -16 }, { x: 16, z: -16 }, { x: -22, z: -22 }, { x: 22, z: -22 }, { x: -8, z: -30 }, { x: 8, z: -30 }, { x: -28, z: -20 }, { x: 28, z: -20 }, { x: 0, z: -32 }, { x: 0, z: -18 }
     ];
 
     // Acak urutan bank soal secara dinamis (Fisher-Yates) agar setiap siswa mendapatkan variasi nomor posko yang unik (anti-contek)
@@ -313,11 +313,15 @@ class BPMPFarmGame {
       [shuffledQuestions[j], shuffledQuestions[k]] = [shuffledQuestions[k], shuffledQuestions[j]];
     }
 
-    for (let i = 0; i < 30; i++) {
-      const q = shuffledQuestions[i] || { id: i + 1, category: "Arduino & Wokwi", question: `Soal nomor ${i + 1}` };
+    const count = Math.min(positions.length, this.questions.length);
+    this.totalQuestions = count;
+
+    for (let i = 0; i < count; i++) {
+      const q = shuffledQuestions[i] || { id: i + 1, category: "Materi Asesmen", question: `Soal nomor ${i + 1}` };
       const pos = positions[i] || { x: (i % 5) * 8 - 16, z: Math.floor(i / 5) * 8 - 10 };
 
       const poskoGroup = new THREE.Group();
+      poskoGroup.name = "posko_group_" + (i + 1);
       poskoGroup.position.set(pos.x, 0, pos.z);
 
       // 1. Glowing Ground Interaction Ring
@@ -351,7 +355,7 @@ class BPMPFarmGame {
         poskoGroup.add(pillar);
       }
 
-      // 3. Floating Number Billboard (#1 s/d #30)
+      // 3. Floating Number Billboard (#1 s/d #40)
       const numCanvas = document.createElement("canvas");
       numCanvas.width = 128;
       numCanvas.height = 128;
@@ -387,10 +391,46 @@ class BPMPFarmGame {
         userAnswer: null,
         isCorrect: false,
         mesh: poskoGroup,
+        group: poskoGroup,
         ring: ring,
         roof: roof,
         sprite: numSprite
       });
+    }
+  }
+
+  /**
+   * Rebuild Posko saat Siswa Mengganti Paket Soal
+   */
+  rebuildPoskos() {
+    if (this.poskoList && this.scene) {
+      this.poskoList.forEach(p => {
+        if (p.mesh) this.scene.remove(p.mesh);
+        if (p.group) this.scene.remove(p.group);
+      });
+    }
+    this.poskoList = [];
+    this.solvedPosko = [];
+    this.answeredMap = {};
+    this.activeNearbyPosko = null;
+    this.build30PoskoSoal();
+    this.updateHUD();
+    this.updateMinimap();
+    if (this.updateMapModalStats) this.updateMapModalStats();
+    if (this.renderLargeMap) this.renderLargeMap();
+  }
+
+  /**
+   * Ganti Paket Soal (SMP KKA, SMA IoT, atau Bahasa Inggris TTS)
+   */
+  switchPackage(packageId) {
+    this.selectedPackageId = packageId;
+    const pkg = window.QUESTION_PACKAGES ? window.QUESTION_PACKAGES[packageId] : null;
+    if (pkg && Array.isArray(pkg.questions) && pkg.questions.length > 0) {
+      this.questions = pkg.questions;
+    }
+    if (this.scene) {
+      this.rebuildPoskos();
     }
   }
 
@@ -979,23 +1019,146 @@ class BPMPFarmGame {
 
   /**
    * Modal Interaktif Menjawab Soal di Posko yang Didekati
+   * Mendukung Teks Bacaan (Reading Passage) & Audio Text-to-Speech (Listening Comprehension)
    */
   openPoskoQuiz(posko) {
     const q = posko.question;
     const modal = document.getElementById("posko-quiz-modal");
     if (!modal) return;
 
+    if (window.ttsManager) window.ttsManager.stop();
     window.soundSystem.playModalOpen();
 
     const optContainer = document.getElementById("modal-posko-options");
     const feedbackBox = document.getElementById("modal-posko-feedback");
     const nextBtn = document.getElementById("btn-modal-close");
 
+    // Wadah Reading & Listening
+    const readingBox = document.getElementById("posko-reading-container");
+    if (readingBox) {
+      if (q.readingPassage || q.type === "reading") {
+        readingBox.style.display = "block";
+        readingBox.innerHTML = `
+          <div class="reading-passage-box">
+            <div style="font-size: 11px; font-weight: 800; color: #0284c7; margin-bottom: 6px;">📖 TEKS BACAAN (READING PASSAGE):</div>
+            <div>${q.readingPassage || ''}</div>
+          </div>
+        `;
+      } else {
+        readingBox.style.display = "none";
+        readingBox.innerHTML = "";
+      }
+    }
+
+    const listeningBox = document.getElementById("posko-listening-container");
+    if (listeningBox) {
+      if (q.audioText || q.type === "listening") {
+        const maxPlays = q.maxPlays || 2;
+        const remaining = window.ttsManager ? window.ttsManager.getPlaysRemaining(posko.id, maxPlays) : maxPlays;
+        const defaultSpeed = q.audioSpeed || (window.ttsManager ? window.ttsManager.currentRate : 1.0);
+
+        listeningBox.style.display = "block";
+        listeningBox.innerHTML = `
+          <div class="listening-player-box">
+            <div class="listening-header">
+              <span class="listening-badge">🎧 SOAL LISTENING AUDIO</span>
+              <span id="listening-quota-${posko.id}" class="listening-quota-tag">
+                Sisa Putar: <b>${remaining} / ${maxPlays}x</b>
+              </span>
+            </div>
+            <div style="font-size: 11.5px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.4;">
+              Dengarkan rekaman suara di bawah ini untuk menjawab pertanyaan:
+            </div>
+            <div class="listening-controls">
+              <button id="btn-play-tts-${posko.id}" class="btn-tts-play" ${remaining <= 0 ? 'disabled' : ''}>
+                <span id="tts-icon-${posko.id}">🔊</span>
+                <span id="tts-label-${posko.id}">Dengarkan Percakapan</span>
+                <span id="tts-wave-${posko.id}" class="sound-wave-anim" style="display: none;">
+                  <span class="sound-wave-bar"></span>
+                  <span class="sound-wave-bar"></span>
+                  <span class="sound-wave-bar"></span>
+                  <span class="sound-wave-bar"></span>
+                </span>
+              </button>
+              <div class="tts-speed-selector">
+                <span style="font-size: 10px; color: #94a3b8; margin-right: 4px;">Kecepatan:</span>
+                <button class="tts-speed-btn ${defaultSpeed <= 0.8 ? 'active' : ''}" data-speed="0.75">🐢 0.75x</button>
+                <button class="tts-speed-btn ${defaultSpeed > 0.8 && defaultSpeed < 1.2 ? 'active' : ''}" data-speed="1.0">▶️ 1.0x</button>
+                <button class="tts-speed-btn ${defaultSpeed >= 1.2 ? 'active' : ''}" data-speed="1.25">⚡ 1.25x</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        listeningBox.querySelectorAll(".tts-speed-btn").forEach(sBtn => {
+          sBtn.addEventListener("click", () => {
+            listeningBox.querySelectorAll(".tts-speed-btn").forEach(b => b.classList.remove("active"));
+            sBtn.classList.add("active");
+            const spd = parseFloat(sBtn.dataset.speed) || 1.0;
+            if (window.ttsManager) window.ttsManager.setRate(spd);
+          });
+        });
+
+        const playBtn = document.getElementById(`btn-play-tts-${posko.id}`);
+        const ttsIcon = document.getElementById(`tts-icon-${posko.id}`);
+        const ttsLabel = document.getElementById(`tts-label-${posko.id}`);
+        const ttsWave = document.getElementById(`tts-wave-${posko.id}`);
+        const quotaTag = document.getElementById(`listening-quota-${posko.id}`);
+
+        if (playBtn) {
+          playBtn.addEventListener("click", () => {
+            if (window.ttsManager && window.ttsManager.isPlaying) {
+              window.ttsManager.stop();
+              ttsIcon.textContent = "🔊";
+              ttsLabel.textContent = "Dengarkan Percakapan";
+              ttsWave.style.display = "none";
+              return;
+            }
+
+            const currentRem = window.ttsManager ? window.ttsManager.getPlaysRemaining(posko.id, maxPlays) : maxPlays;
+            if (currentRem <= 0) {
+              playBtn.disabled = true;
+              return;
+            }
+
+            window.ttsManager.speak(q.audioText, posko.id, {
+              maxPlays: maxPlays,
+              rate: window.ttsManager.currentRate || 1.0,
+              lang: q.audioLang || "en-US",
+              onStart: () => {
+                ttsIcon.textContent = "⏹️";
+                ttsLabel.textContent = "Sedang Berbicara...";
+                ttsWave.style.display = "inline-flex";
+                const remAfter = window.ttsManager.getPlaysRemaining(posko.id, maxPlays);
+                if (quotaTag) quotaTag.innerHTML = `Sisa Putar: <b>${remAfter} / ${maxPlays}x</b>`;
+                if (remAfter <= 0) playBtn.disabled = true;
+              },
+              onEnd: () => {
+                ttsIcon.textContent = "🔊";
+                ttsLabel.textContent = "Dengarkan Percakapan";
+                ttsWave.style.display = "none";
+                const remAfter = window.ttsManager.getPlaysRemaining(posko.id, maxPlays);
+                if (remAfter <= 0) {
+                  playBtn.disabled = true;
+                  playBtn.innerHTML = `🚫 Kuota Dengar Habis (Maks. ${maxPlays}x)`;
+                }
+              }
+            });
+          });
+        }
+      } else {
+        listeningBox.style.display = "none";
+        listeningBox.innerHTML = "";
+      }
+    }
+
+    const totalInList = this.poskoList.length || 30;
+
     // 🔒 JIKA SOAL INI SUDAH DIJAWAB: KUNCI TOTAL! HANYA BISA LIHAT PEMBAHASAN
     if (posko.isAnswered) {
       const statusTitle = posko.isCorrect ? "✅ TERJAWAB BENAR" : "❌ TERJAWAB SALAH";
-      document.getElementById("modal-posko-badge").textContent = `Posko #${posko.id} dari 30 (🔒 SUDAH SELESAI)`;
-      document.getElementById("modal-posko-topic").textContent = `${q.category || "Arduino & Wokwi"} — ${statusTitle}`;
+      document.getElementById("modal-posko-badge").textContent = `Posko #${posko.id} dari ${totalInList} (🔒 SUDAH SELESAI)`;
+      document.getElementById("modal-posko-topic").textContent = `${q.category || "Materi Asesmen"} — ${statusTitle}`;
       document.getElementById("modal-posko-question").textContent = q.question;
 
       optContainer.innerHTML = "";
@@ -1025,6 +1188,7 @@ class BPMPFarmGame {
       nextBtn.style.display = "inline-block";
       nextBtn.textContent = "Tutup & Lanjut Jelajahi Posko Lain ➔";
       nextBtn.onclick = () => {
+        if (window.ttsManager) window.ttsManager.stop();
         modal.classList.remove("active");
       };
 
@@ -1033,8 +1197,8 @@ class BPMPFarmGame {
     }
 
     // JIKA BELUM DIJAWAB: TAMPILKAN SOAL BARU UNTUK DIJAWAB
-    document.getElementById("modal-posko-badge").textContent = `Posko #${posko.id} dari 30`;
-    document.getElementById("modal-posko-topic").textContent = q.category || "Arduino & Wokwi";
+    document.getElementById("modal-posko-badge").textContent = `Posko #${posko.id} dari ${totalInList}`;
+    document.getElementById("modal-posko-topic").textContent = q.category || "Materi Asesmen";
     document.getElementById("modal-posko-question").textContent = q.question;
 
     feedbackBox.style.display = "none";
@@ -1054,6 +1218,8 @@ class BPMPFarmGame {
 
   handlePoskoAnswer(posko, selectedKey, clickedBtn) {
     if (posko.isAnswered) return; // Mencegah double click / pengulangan
+
+    if (window.ttsManager) window.ttsManager.stop();
 
     const q = posko.question;
     const isCorrect = (selectedKey === q.answer);
@@ -1117,7 +1283,7 @@ class BPMPFarmGame {
 
     const lastAnswer = {
       poskoId: posko.id,
-      category: q.category || "Arduino & Wokwi",
+      category: q.category || "Materi Asesmen",
       userAnswer: selectedKey,
       correctAnswer: q.answer,
       isCorrect: isCorrect,
@@ -1127,6 +1293,7 @@ class BPMPFarmGame {
     nextBtn.style.display = "inline-block";
     nextBtn.textContent = "Selesai & Lanjut Eksplorasi Peta ➔";
     nextBtn.onclick = () => {
+      if (window.ttsManager) window.ttsManager.stop();
       document.getElementById("posko-quiz-modal").classList.remove("active");
     };
 
@@ -1134,10 +1301,10 @@ class BPMPFarmGame {
     this.syncScoreToGAS(lastAnswer);
     this.broadcastMyPosition();
 
-    if (this.solvedPosko.length >= 30) {
+    if (this.solvedPosko.length >= this.poskoList.length) {
       setTimeout(() => {
         document.getElementById("posko-quiz-modal").classList.remove("active");
-        this.triggerGameFinish("Luar Biasa! Seluruh 30 Posko Telah Berhasil Anda Kerjakan!");
+        this.triggerGameFinish(`Luar Biasa! Seluruh ${this.poskoList.length} Posko Telah Berhasil Anda Kerjakan!`);
       }, 2500);
     }
   }
@@ -1175,8 +1342,9 @@ class BPMPFarmGame {
    * HUD & Minimap Radar
    */
   updateHUD() {
+    const total = this.poskoList.length || 30;
     const answeredCount = Object.keys(this.answeredMap).length;
-    const remaining = 30 - answeredCount;
+    const remaining = total - answeredCount;
 
     // Tampilkan Skor Saya
     const scoreEl = document.getElementById("hud-score");
@@ -1184,7 +1352,7 @@ class BPMPFarmGame {
 
     // Tampilkan Jumlah Soal yang Sudah Dijawab
     const statsEl = document.getElementById("hud-soal-stats");
-    if (statsEl) statsEl.textContent = `${answeredCount} / 30 Terjawab`;
+    if (statsEl) statsEl.textContent = `${answeredCount} / ${total} Terjawab`;
 
     const remEl = document.getElementById("hud-soal-remaining");
     if (remEl) remEl.textContent = `(Sisa: ${remaining})`;
@@ -1197,7 +1365,7 @@ class BPMPFarmGame {
 
     const tag = document.getElementById("hud-current-tile");
     if (tag) {
-      tag.textContent = `Posisi: X: ${Math.round(this.playerPos.x)}, Z: ${Math.round(this.playerPos.z)} | ${answeredCount}/30 Terjawab (${this.correctCount} Benar, ${this.wrongCount} Salah)`;
+      tag.textContent = `Posisi: X: ${Math.round(this.playerPos.x)}, Z: ${Math.round(this.playerPos.z)} | ${answeredCount}/${total} Terjawab (${this.correctCount} Benar, ${this.wrongCount} Salah)`;
     }
 
     this.updateMinimap();
@@ -1342,14 +1510,15 @@ class BPMPFarmGame {
   }
 
   updateMapModalStats() {
+    const total = this.poskoList.length || 30;
     const answeredCount = Object.keys(this.answeredMap).length;
-    const remaining = 30 - answeredCount;
+    const remaining = total - answeredCount;
     const correct = this.correctCount;
     const wrong = this.wrongCount;
 
     const statsText = document.getElementById("map-modal-stats-text");
     if (statsText) {
-      statsText.innerHTML = `📊 <b>${answeredCount} / 30 Posko Terjawab</b> (${correct} Benar, ${wrong} Salah, ${remaining} Sisa)`;
+      statsText.innerHTML = `📊 <b>${answeredCount} / ${total} Posko Terjawab</b> (${correct} Benar, ${wrong} Salah, ${remaining} Sisa)`;
     }
 
     const unEl = document.getElementById("count-unanswered");
@@ -1768,17 +1937,18 @@ class BPMPFarmGame {
       window.gasService.channel.postMessage(finishPayload);
     }
 
+    const totalInList = this.poskoList.length || 30;
     document.getElementById("finish-reason").textContent = reasonMessage;
     document.getElementById("finish-player-name").textContent = this.playerData.name;
     document.getElementById("finish-score").textContent = `${this.score} Poin`;
-    document.getElementById("finish-correct").textContent = `${this.correctCount} / 30`;
+    document.getElementById("finish-correct").textContent = `${this.correctCount} / ${totalInList}`;
     document.getElementById("finish-wrong").textContent = `${this.wrongCount}`;
     document.getElementById("finish-time").textContent = this.getFormattedElapsedTime();
     document.getElementById("finish-tab-switches").textContent = `${window.gasService.tabSwitchCount || 0} Kali`;
 
     const statusEl = document.getElementById("finish-sync-status");
     if (statusEl) {
-      statusEl.innerHTML = `✅ <b>Status Nilai:</b> Berhasil menyelesaikan 30 posko dengan <b>${this.correctCount} Benar</b> (Skor: ${this.score}). Data tersimpan di Google Sheets Guru.`;
+      statusEl.innerHTML = `✅ <b>Status Nilai:</b> Berhasil menyelesaikan ${totalInList} posko dengan <b>${this.correctCount} Benar</b> (Skor: ${this.score}). Data tersimpan di Google Sheets Guru.`;
     }
 
     const btnResync = document.getElementById("btn-resync-final");

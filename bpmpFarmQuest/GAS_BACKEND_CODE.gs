@@ -314,7 +314,7 @@ function handleGetQuestions() {
   const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 9).getValues();
   const questions = rows.map((r, i) => ({
     id: r[0] || (i + 1),
-    category: r[1] || "Arduino & Wokwi",
+    category: r[1] || "Materi Asesmen",
     question: r[2],
     options: [
       { key: "A", text: r[3] },
@@ -323,7 +323,12 @@ function handleGetQuestions() {
       { key: "D", text: r[6] }
     ],
     answer: String(r[7]).toUpperCase().trim(),
-    explanation: r[8] || ""
+    explanation: r[8] || "",
+    type: r[9] || (r[10] ? "listening" : (r[13] ? "reading" : "standard")),
+    audioText: r[10] || "",
+    audioSpeed: parseFloat(r[11]) || 1.0,
+    maxPlays: parseInt(r[12]) || 2,
+    readingPassage: r[13] || ""
   }));
   
   return jsonResponse(questions);
@@ -331,6 +336,7 @@ function handleGetQuestions() {
 
 /**
  * 4. GURU: SIMPAN / GANTI SOAL BARU KE GOOGLE SHEETS
+ * Mendukung Tipe Soal Standard, Reading Passage, dan Audio TTS Listening
  */
 function handleSaveQuestions(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -342,9 +348,9 @@ function handleSaveQuestions(data) {
   }
 
   sheet.appendRow([
-    "ID Soal", "Kategori / Topik", "Pertanyaan", "Pilihan A", "Pilihan B", "Pilihan C", "Pilihan D", "Kunci Jawaban", "Pembahasan"
+    "ID Soal", "Kategori / Topik", "Pertanyaan", "Pilihan A", "Pilihan B", "Pilihan C", "Pilihan D", "Kunci Jawaban", "Pembahasan", "Tipe", "Audio TTS", "Speed Audio", "Batas Putar", "Reading Passage"
   ]);
-  sheet.getRange(1, 1, 1, 9).setFontWeight("bold").setBackground("#c8e6c9");
+  sheet.getRange(1, 1, 1, 14).setFontWeight("bold").setBackground("#c8e6c9");
 
   let qList = data.questions || [];
   if (typeof qList === "string") {
@@ -371,19 +377,24 @@ function handleSaveQuestions(data) {
 
     rows.push([
       q.id || (idx + 1),
-      q.category || "Arduino & Wokwi",
+      q.category || "Materi Asesmen",
       q.question || "",
       optA,
       optB,
       optC,
       optD,
       (q.answer || "A").toString().toUpperCase().trim(),
-      q.explanation || ""
+      q.explanation || "",
+      q.type || "standard",
+      q.audioText || "",
+      q.audioSpeed || 1.0,
+      q.maxPlays || 2,
+      q.readingPassage || ""
     ]);
   });
 
   if (rows.length > 0) {
-    sheet.getRange(2, 1, rows.length, 9).setValues(rows);
+    sheet.getRange(2, 1, rows.length, 14).setValues(rows);
   }
 
   SpreadsheetApp.flush();
